@@ -19,6 +19,7 @@
 properties([
   [$class: 'GithubProjectProperty', projectUrlStr: 'https://github.com/nuxeo/nuxeo/'],
   [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5']],
+  disableConcurrentBuilds(),
 ])
 
 void setGitHubBuildStatus(String context, String message, String state) {
@@ -28,6 +29,11 @@ void setGitHubBuildStatus(String context, String message, String state) {
     contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
     statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]]],
   ])
+}
+
+String getVersion() {
+  String nuxeoVersion = readMavenPom().getVersion()
+  return BRANCH_NAME == 'master' ? nuxeoVersion : nuxeoVersion + "-${BRANCH_NAME}-${BUILD_NUMBER}"
 }
 
 pipeline {
@@ -41,6 +47,7 @@ pipeline {
     HELM_RELEASE_REDIS = 'redis'
     SERVICE_REDIS = 'redis-master'
     SERVICE_ACCOUNT = 'jenkins'
+    ORG = 'nuxeo'
   }
   stages {
     stage('Compile') {
@@ -105,6 +112,30 @@ pipeline {
         }
         failure {
           setGitHubBuildStatus('platform/utests/dev', 'Unit tests - dev environment', 'FAILURE')
+        }
+      }
+    }
+    stage('Build and deploy Docker image') {
+      steps {
+        setGitHubBuildStatus('platform/docker', 'Build and deploy Docker image', 'PENDING')
+        container('maven') {
+          withEnv(["VERSION=${getVersion()}"]) {
+            echo """
+            ----------------------------------------
+            Build and deploy Docker image
+            ----------------------------------------
+            Image tag: ${VERSION}
+            """
+            sh 'skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml'
+          }
+        }
+      }
+      post {
+        success {
+          setGitHubBuildStatus('platform/docker', 'Build and deploy Docker image', 'SUCCESS')
+        }
+        failure {
+          setGitHubBuildStatus('platform/docker', 'Build and deploy Docker image', 'FAILURE')
         }
       }
     }
