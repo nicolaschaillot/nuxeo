@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.retention.RetentionService">
+	<implementation
+		class="org.nuxeo.retention.service.RetentionManagerImpl" />
+
+	<service>
+		<provide
+			interface="org.nuxeo.retention.service.RetentionManager" />
+	</service>
+
+</component>
