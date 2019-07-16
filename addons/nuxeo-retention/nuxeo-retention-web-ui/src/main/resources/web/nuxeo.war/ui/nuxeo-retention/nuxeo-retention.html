@@ -26,3 +26,15 @@ limitations under the License.
     <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
   </template>
 </nuxeo-slot-content>
+
+<nuxeo-slot-content name="holdToggleDocumentAction" slot="DOCUMENT_ACTIONS" order="75">
+  <template>
+    <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="retainDocumentAction" slot="DOCUMENT_ACTIONS" order="77">
+  <template>
+    <nuxeo-retain-button document="[[document]]"></nuxeo-retain-button>
+  </template>
+</nuxeo-slot-content>
