@@ -1,0 +1,13 @@
+<component name="org.nuxeo.retention.listeners">
+
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
+    point="listener">
+    <listener name="retentionEventsBasedStartingPointListener"
+      class="org.nuxeo.retention.listeners.RetentionStartingPointListener">
+    </listener>
+    <listener name="retentionExpiredListener"
+      class="org.nuxeo.retention.listeners.RetentionExpiredListener">
+      <event>retentionExpired</event>
+    </listener>
+  </extension>
+</component>

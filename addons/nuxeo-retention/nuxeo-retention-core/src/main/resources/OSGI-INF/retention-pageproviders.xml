@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<component name="org.nuxeo.retention.pageprovider.contrib">
+
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
+    point="providers">
+    <coreQueryPageProvider name="manual_retention_rule_suggestion">
+      <pattern quoteParameters="false" escapeParameters="true">
+        SELECT * FROM Document WHERE dc:title ILIKE '?%' AND
+          ecm:mixinType = 'RetentionRule' AND retention_rule:enabled = 1 AND
+          retention_rule:applicationPolicy = 'manual' AND
+          ecm:isVersion = 0 AND ecm:isTrashed = 0
+      </pattern>
+      <sort column="ecm:pos" ascending="true" />
+      <pageSize>50</pageSize>
+    </coreQueryPageProvider>
+  </extension>
+
+</component>

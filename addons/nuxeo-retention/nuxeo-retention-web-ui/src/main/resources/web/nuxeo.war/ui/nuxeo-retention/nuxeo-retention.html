@@ -1,0 +1,47 @@
+<!--
+(C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<link rel="import" href="nuxeo-retention-rules.html">
+<link rel="import" href="nuxeo-attach-rule-button.html">
+
+<nuxeo-slot-content name="retentionRulesDrawerItem" slot="DRAWER_ITEMS" order="65">
+  <template>
+    <nuxeo-menu-icon name="retentionRules" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
+  </template>
+</nuxeo-slot-content>
+<nuxeo-slot-content name="retentionRulesDrawerPage" slot="DRAWER_PAGES">
+  <template>
+    <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="holdToggleDocumentAction" slot="DOCUMENT_ACTIONS" order="75">
+  <template>
+    <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="retainDocumentAction" slot="DOCUMENT_ACTIONS" order="77">
+  <template>
+    <nuxeo-retain-button document="[[document]]"></nuxeo-retain-button>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="attachRetentionRuleDocumentAction" slot="DOCUMENT_ACTIONS" order="78">
+  <template>
+    <nuxeo-attach-rule-button document="[[document]]"></nuxeo-attach-rule-button>
+  </template>
+</nuxeo-slot-content>
