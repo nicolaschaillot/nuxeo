@@ -99,7 +99,18 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         executeRuleBeginActions(record, session);
         session.saveDocument(document);
         session.makeRecord(document.getRef());
-        Calendar retainUntil = rule.getRetainUntilDateFromNow();
+        final Calendar retainUntil;
+        if (rule.isImmediate()) {
+            retainUntil = rule.getRetainUntilDateFromNow();
+        } else if (rule.isAfterDely()) {
+            throw new UnsupportedOperationException("After delay not yet implemented");
+        } else if (rule.isEventBased()) {
+            retainUntil = CoreSession.RETAIN_UNTIL_INDETERMINATE;
+        } else if (rule.isMetadataBased()) {
+            throw new UnsupportedOperationException("Metadata based not yet implemented");
+        } else {
+            throw new IllegalArgumentException("Unknown starting point policy: " + rule.getStartingPointPolicy());
+        }
         log.debug("Setting retention on {} until {}", document::getPathAsString,
                 () -> retainUntil != null ? RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime())
                         : "indeterminate");
@@ -208,7 +219,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                 String expression = record.getStartingPointExpression();
                 Boolean startNow = evaluateConditionExpression(actionContext, record.getStartingPointExpression());
                 if (startNow) {
-                    session.setRetainUntil(record.getDocument().getRef(), record.getRetainUntilDateFromNow(true));
+                    session.setRetainUntil(record.getDocument().getRef(), record.getRetainUntilDateFromNow());
                 } else {
                     log.debug("The '{}' expression evaluated to false", expression);
                 }
@@ -235,7 +246,11 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                     try (Session session = dir.getSession()) {
                         Map<String, Serializable> filter = new HashMap<>();
                         filter.put(RetentionConstants.OBSOLETE_FIELD_ID, Long.valueOf(0));
-                        acceptedEvents = session.getProjection(filter, session.getIdField());
+                        List<String> evts = session.getProjection(filter, session.getIdField());
+                        if (evts.isEmpty()) {
+                            return evts;
+                        }
+                        acceptedEvents = evts;
                         log.debug("Accepted events {}", acceptedEvents::toString);
                     }
                 }
@@ -244,10 +259,5 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
         return acceptedEvents;
     }
-
-    @Override
-    public void invalidate() {
-        this.acceptedEvents = null;
-    };
 
 }

@@ -49,6 +49,4 @@ public interface RetentionManager {
 
     List<String> getAcceptedEvents();
 
-    void invalidate();
-
 }

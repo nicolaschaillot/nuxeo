@@ -43,8 +43,8 @@ import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.retention.adapters.Record;
+import org.nuxeo.retention.adapters.Record.StartingPointPolicy;
 import org.nuxeo.retention.adapters.RetentionRule;
-import org.nuxeo.retention.adapters.RetentionRule.StartingPointPolicy;
 import org.nuxeo.retention.service.RetentionManager;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -105,7 +105,6 @@ public class TestRetentionManager {
             StartingPointPolicy startingPointPolicy, String startingPointEventId, String startingPointExpression,
             long years, long months, long days, long durationMillis, String[] beginActions, String[] endActions) {
         DocumentModel doc = session.createDocumentModel("/RetentionRules", "testRule", "RetentionRule");
-        doc = session.createDocument(doc);
         RetentionRule rule = doc.getAdapter(RetentionRule.class);
         rule.setDurationYears(years);
         rule.setDurationMonths(months);
@@ -117,6 +116,7 @@ public class TestRetentionManager {
         rule.setDurationMillis(durationMillis);
         rule.setBeginActions(beginActions);
         rule.setEndActions(endActions);
+        doc = session.createDocument(doc);
         return session.saveDocument(rule.getDocument()).getAdapter(RetentionRule.class);
     }
 
@@ -142,7 +142,6 @@ public class TestRetentionManager {
         file = session.createDocumentModel("/", "File", "File");
         file = session.createDocument(file);
         file = session.saveDocument(file);
-        service.invalidate();
     }
 
     @Test

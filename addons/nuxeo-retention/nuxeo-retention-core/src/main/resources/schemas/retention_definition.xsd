@@ -3,6 +3,7 @@
 <xs:schema targetNamespace="http://www.nuxeo.org/ecm/schemas/common/"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:nxs="http://www.nuxeo.org/ecm/schemas/common/"
+  xmlns:nxsv="http://www.nuxeo.org/ecm/schemas/core/validation/"
   xmlns:ref="http://www.nuxeo.org/ecm/schemas/core/external-references/">
 
   <xs:include schemaLocation="base.xsd" />
@@ -14,6 +15,17 @@
   
   <xs:element name="expression" type="xs:string" />
   
+  <xs:element name="startingPointPolicy" nillable="false" nxsv:nillable="false">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="immediate" />
+        <xs:enumeration value="after_delay" />
+        <xs:enumeration value="event_based" />
+        <xs:enumeration value="metadata_based" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
   <xs:element name="startingPointEvent">
     <xs:simpleType>
       <xs:restriction base="xs:string" ref:resolver="directoryResolver" ref:directory="RetentionEvent" />

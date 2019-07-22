@@ -51,10 +51,10 @@ limitations under the License.
         attr-for-selected="key"
         placeholder="[[i18n('retention.rule.label.applicationPolicy.placehodler')]]"
         label="[[i18n('retention.rule.label.applicationPolicy.description')]]" required>
-        <paper-item key="auto">[[i18n('retention.rule.label.applicationPolicy.auto')]]</paper-item>
+        <paper-item key="auto" disabled>[[i18n('retention.rule.label.applicationPolicy.auto')]]</paper-item>
         <paper-item key="manual">[[i18n('retention.rule.label.applicationPolicy.manual')]]</paper-item>
       </nuxeo-select>
-      <dom-if if="[[_isAuto(document.properties.retention_rule:applicationPolicy)]]">
+      <dom-if if="[[_isAuto(document)]]">
         <template>
           <nuxeo-input role="widget"
                        label="[[i18n('retention.rule.label.applicationPolicy.auto.description')]]"
@@ -65,9 +65,57 @@ limitations under the License.
           </nuxeo-input>
         </template>
       </dom-if>
-      <dom-if if="[[_isManual(document.properties.retention_rule:applicationPolicy)]]">
+      <dom-if if="[[_isManual(document)]]">
         <template>
           [[i18n('retention.rule.label.applicationPolicy.manual.description')]]
+        </template>
+      </dom-if>
+    </nuxeo-card>
+
+    <nuxeo-card heading="[[i18n('retention.rule.label.startPolicy.heading')]]">
+      <nuxeo-select id="startPolicyDropdown" selected="{{document.properties.retention_def:startingPointPolicy}}"
+        attr-for-selected="key"
+        placeholder="[[i18n('retention.rule.label.startPolicy.placehodler')]]"
+        label="[[i18n('retention.rule.label.startPolicy.description')]]" required>
+        <paper-item key="immediate">[[i18n('retention.rule.label.startPolicy.immediate')]]</paper-item>
+        <paper-item key="after_delay" disabled>[[i18n('retention.rule.label.startPolicy.after_delay')]]</paper-item>
+        <paper-item key="event_based">[[i18n('retention.rule.label.startPolicy.event_based')]]</paper-item>
+        <paper-item key="metadata_based" disabled>[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
+      </nuxeo-select>
+      <dom-if if="[[_isImmediate(document.properties.retention_def:startingPointPolicy)]]">
+        <template>
+          [[i18n('retention.rule.label.startPolicy.immediate.description')]]
+        </template>
+      </dom-if>
+      <dom-if if="[[_isAfterDelay(document.properties.retention_def:startingPointPolicy)]]">
+        <template>
+          [[i18n('retention.rule.label.startPolicy.afterDelay.description')]]
+        </template>
+      </dom-if>
+      <dom-if if="[[_isEventBased(document.properties.retention_def:startingPointPolicy)]]">
+        <template>
+          [[i18n('retention.rule.label.startPolicy.eventBased.description')]]
+          <nuxeo-directory-suggestion
+             role="widget"
+             value="{{document.properties.retention_def:startingPointEvent}}"
+             label="[[i18n('retention.rule.label.startPolicy.eventBased.event.description')]]"
+             dbl10n
+             required
+             directory-name="RetentionEvent"
+             min-chars="0">
+           </nuxeo-directory-suggestion>
+           <nuxeo-input role="widget"
+                        label="[[i18n('retention.rule.label.startPolicy.eventBased.expression.description')]]"
+                        placeholder="[[i18n('retention.rule.label.startPolicy.eventBased.expression.placeholder')]]"
+                        name="startingPointExpression"
+                        required
+                        value="{{document.properties.retention_def:startingPointExpression}}">
+           </nuxeo-input>
+        </template>
+      </dom-if>
+      <dom-if if="[[_isMetadataBased(document.properties.retention_def:startingPointPolicy)]]">
+        <template>
+          [[i18n('retention.rule.label.startPolicy.metadataBased.description')]]
         </template>
       </dom-if>
     </nuxeo-card>
@@ -126,22 +174,12 @@ limitations under the License.
   <script>
     Polymer({
       is: 'nuxeo-retentionrule-create-layout',
-      behaviors: [Nuxeo.LayoutBehavior],
+      behaviors: [Nuxeo.LayoutBehavior, Nuxeo.RetentionBehavior],
       properties: {
         /**
          * @doctype retentionrule
          */
         document: Object,
-      },
-
-      _isAuto: function() {
-        return this.document && this.document.properties &&
-          this.document.properties['retention_rule:applicationPolicy'] === 'auto';
-      },
-
-      _isManual: function() {
-        return this.document && this.document.properties &&
-          this.document.properties['retention_rule:applicationPolicy'] === 'manual';
       }
 
     });

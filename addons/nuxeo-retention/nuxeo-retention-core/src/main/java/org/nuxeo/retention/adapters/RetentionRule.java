@@ -30,10 +30,6 @@ public class RetentionRule extends Record {
         AUTO, MANUAL
     }
 
-    public enum StartingPointPolicy {
-        IMMEDIATE, EVENT_BASED
-    }
-
     public RetentionRule(DocumentModel doc) {
         super(doc);
     }
@@ -46,28 +42,12 @@ public class RetentionRule extends Record {
         return ApplicationPolicy.MANUAL.name().toLowerCase().equals(getApplicationPolicy());
     }
 
-    public boolean isImmediate() {
-        return StartingPointPolicy.IMMEDIATE.name().toLowerCase().equals(getStartingPointPolicy());
-    }
-
-    public boolean isEventBased() {
-        return StartingPointPolicy.EVENT_BASED.name().toLowerCase().equals(getStartingPointPolicy());
-    }
-
     public String getApplicationPolicy() {
         return (String) document.getPropertyValue(RetentionConstants.APPLICATION_POLICY_PROP);
     }
 
     public void setApplicationPolicy(ApplicationPolicy policy) {
         document.setPropertyValue(RetentionConstants.APPLICATION_POLICY_PROP, policy.name().toLowerCase());
-    }
-
-    public String getStartingPointPolicy() {
-        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP);
-    }
-
-    public void setStartingPointPolicy(StartingPointPolicy policy) {
-        document.setPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP, policy.name().toLowerCase());
     }
 
     public void disable() {

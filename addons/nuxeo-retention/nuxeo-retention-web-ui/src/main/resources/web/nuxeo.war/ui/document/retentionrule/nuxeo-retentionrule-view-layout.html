@@ -33,13 +33,34 @@
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <div role="widget">
         <nuxeo-tag>
-          [[_computePolicyLabel(document.properties.retention_rule:applicationPolicy)]]
+          [[_computeApplicationPolicyLabel(document)]]
         </nuxeo-tag>
       </div>
       <div role="widget" hidden$="[[!_isAuto(document)]]">
         <label>[[i18n('retention.rule.label.applicationPolicy.auto.description.short')]]</label>
         <nuxeo-tag>
           [[document.properties.retention_def:expression]]
+        </nuxeo-tag>
+      </div>
+    </nuxeo-card>
+
+    <nuxeo-card heading="[[i18n('retention.rule.label.startPolicy.heading')]]">
+      <div role="widget">
+        <nuxeo-tag>
+          [[_computeStartPolicyLabel(document)]]
+        </nuxeo-tag>
+      </div>
+      <div role="widget" hidden$="[[!_isEventBased(document)]]">
+        <nuxeo-directory-suggestion
+           role="widget"
+           value="{{document.properties.retention_def:startingPointEvent}}"
+           label="[[i18n('retention.rule.label.startPolicy.eventBased.event.description')]]"
+           dbl10n
+           readonly
+           directory-name="RetentionEvent">
+        </nuxeo-directory-suggestion>
+        <nuxeo-tag>
+          [[document.properties.retention_def:startingPointExpression]]
         </nuxeo-tag>
       </div>
     </nuxeo-card>
@@ -89,7 +110,7 @@
   <script>
     Polymer({
       is: 'nuxeo-retentionrule-view-layout',
-      behaviors: [Nuxeo.LayoutBehavior],
+      behaviors: [Nuxeo.LayoutBehavior, Nuxeo.RetentionBehavior],
       properties: {
 
         /**
@@ -97,23 +118,7 @@
          */
         document: {
           type: Object,
-        },
-
-      },
-
-      _computePolicyLabel: function() {
-        return this.i18n(
-          'retention.rule.label.applicationPolicy.' + this.document.properties['retention_rule:applicationPolicy']);
-      },
-
-      _isAuto: function() {
-        return this.document && this.document.properties &&
-          this.document.properties['retention_rule:applicationPolicy'] === 'auto';
-      },
-
-      _isManual: function() {
-        return this.document && this.document.properties &&
-          this.document.properties['retention_rule:applicationPolicy'] === 'manual';
+        }
       }
     });
 

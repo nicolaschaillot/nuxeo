@@ -1,5 +1,7 @@
 <component name="org.nuxeo.retention.listeners">
 
+  <require>org.nuxeo.retention.vocabularies</require>
+
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
     point="listener">
     <listener name="retentionEventsBasedStartingPointListener"

@@ -56,7 +56,7 @@ public class RetentionConstants {
 
     public static final String RETENTION_CHECKER_LISTENER_IGNORE = "retentionRecordIgnore";
 
-    public static final String STARTING_POINT_POLICY_PROP = "retention_rule:startingPointPolicy";
+    public static final String STARTING_POINT_POLICY_PROP = "retention_def:startingPointPolicy";
 
     public static final String STARTING_POINT_EXPRESSION_PROP = "retention_def:startingPointExpression";
 

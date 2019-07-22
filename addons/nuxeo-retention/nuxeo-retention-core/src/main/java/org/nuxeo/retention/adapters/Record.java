@@ -40,6 +40,10 @@ public class Record {
 
     private static final Logger log = LogManager.getLogger(Record.class);
 
+    public enum StartingPointPolicy {
+        IMMEDIATE, AFTER_DELAY, EVENT_BASED, METADATA_BASED
+    }
+
     protected DocumentModel document;
 
     public Record(DocumentModel doc) {
@@ -90,21 +94,13 @@ public class Record {
                 : false;
     }
 
-    public Calendar getRetainUntilDateFromNow(boolean byPass) {
-        if (byPass || getStartingPointExpression() == null) {
-            LocalDateTime localDateTime = LocalDateTime.now()
-                                                       .plusYears(getDurationYears())
-                                                       .plusMonths(getDurationMonths())
-                                                       .plusDays(getDurationDays())
-                                                       .plusNanos(getDurationMillis() * 1000000);
-            return GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()));
-        } else {
-            return CoreSession.RETAIN_UNTIL_INDETERMINATE;
-        }
-    }
-
     public Calendar getRetainUntilDateFromNow() {
-        return getRetainUntilDateFromNow(false);
+        LocalDateTime localDateTime = LocalDateTime.now()
+                                                   .plusYears(getDurationYears())
+                                                   .plusMonths(getDurationMonths())
+                                                   .plusDays(getDurationDays())
+                                                   .plusNanos(getDurationMillis() * 1000000);
+        return GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()));
     }
 
     public String getStartingPointExpression() {
@@ -163,5 +159,29 @@ public class Record {
 
     public void setStartingPointExpression(String expression) {
         document.setPropertyValue(RetentionConstants.STARTING_POINT_EXPRESSION_PROP, expression);
+    }
+
+    public String getStartingPointPolicy() {
+        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP);
+    }
+
+    public void setStartingPointPolicy(StartingPointPolicy policy) {
+        document.setPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP, policy.name().toLowerCase());
+    }
+
+    public boolean isAfterDely() {
+        return StartingPointPolicy.AFTER_DELAY.name().toLowerCase().equals(getStartingPointPolicy());
+    }
+
+    public boolean isMetadataBased() {
+        return StartingPointPolicy.METADATA_BASED.name().toLowerCase().equals(getStartingPointPolicy());
+    }
+
+    public boolean isImmediate() {
+        return StartingPointPolicy.IMMEDIATE.name().toLowerCase().equals(getStartingPointPolicy());
+    }
+
+    public boolean isEventBased() {
+        return StartingPointPolicy.EVENT_BASED.name().toLowerCase().equals(getStartingPointPolicy());
     }
 }
