@@ -1,24 +1,32 @@
 # vim:set ft=dockerfile:
-FROM       openjdk:11-jdk
+FROM       centos:7
 MAINTAINER Nuxeo <packagers@nuxeo.com>
 
-# Add needed convert tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  perl \
-  locales \
-  pwgen \
-  imagemagick \
-  ffmpeg2theora \
-  ufraw \
-  poppler-utils \
-  libwpd-tools \
-  exiftool \
-  ghostscript \
-  libreoffice \
-  ffmpeg \
-  x264 \
-  && rm -rf /var/lib/apt/lists/*
+# Install wget and tar
+RUN yum -y install wget tar
 
+# Install Java
+ARG JAVA_ARCHIVE=OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz
+ARG JAVA_HOME_DIR=jdk-11.0.4+11
+RUN wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.4%2B11/OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz \
+  && echo "90c33cf3f2ed0bd773f648815de7347e69cfbb3416ef3bf41616ab1c4aa0f5a8 $JAVA_ARCHIVE" | sha256sum -c - \
+  && tar zxvf $JAVA_ARCHIVE \
+  && rm $JAVA_ARCHIVE \
+  && mv $JAVA_HOME_DIR /usr/local/
+ENV JAVA_HOME /usr/local/$JAVA_HOME_DIR
+
+# Add needed convert tools
+RUN yum -y update && yum -y install epel-release && yum -y install \
+  ghostscript \
+  ImageMagick \
+  libreoffice \
+  libwpd-tools \
+  # required by perl-Image-ExifTool to extract binary metadata from open office document
+  perl-Archive-Zip \
+  perl-Image-ExifTool \
+  poppler-utils \
+  ufraw \
+  && yum clean all
 
 # Remove setuid/setgid binaries from images for security
 RUN find / -perm 6000 -type f -exec chmod a-s {} \; || true
