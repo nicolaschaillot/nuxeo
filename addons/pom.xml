@@ -1153,12 +1153,12 @@
       <!-- Retention -->
       <dependency>
         <groupId>org.nuxeo.retention</groupId>
-        <artifactId>nuxeo-retention</artifactId>
+        <artifactId>nuxeo-retention-core</artifactId>
         <version>${nuxeo.retention.version}</version>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.retention</groupId>
-        <artifactId>nuxeo-retention</artifactId>
+        <artifactId>nuxeo-retention-web-ui</artifactId>
         <version>${nuxeo.retention.version}</version>
       </dependency>
     </dependencies>
