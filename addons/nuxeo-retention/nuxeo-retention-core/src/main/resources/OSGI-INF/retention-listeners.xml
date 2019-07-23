@@ -1,6 +1,6 @@
 <component name="org.nuxeo.retention.listeners">
 
-  <require>org.nuxeo.retention.vocabularies</require>
+  <require>org.nuxeo.retention.RetentionService</require>
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
     point="listener">

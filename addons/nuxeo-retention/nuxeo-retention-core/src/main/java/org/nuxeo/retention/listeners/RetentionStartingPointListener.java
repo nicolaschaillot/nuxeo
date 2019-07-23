@@ -49,7 +49,12 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
         if (!(eventCtx instanceof DocumentEventContext)) {
             return false;
         }
-        return Framework.getService(RetentionManager.class).getAcceptedEvents().contains(event.getName());
+        RetentionManager retentionManager = Framework.getService(RetentionManager.class);
+        if (retentionManager == null) {
+            log.trace("RetentionManager not started yet?!");
+            return false;
+        }
+        return retentionManager.getAcceptedEvents().contains(event.getName());
     }
 
     @Override

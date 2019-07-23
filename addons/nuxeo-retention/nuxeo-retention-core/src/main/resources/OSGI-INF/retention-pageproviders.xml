@@ -8,8 +8,20 @@
       <pattern quoteParameters="false" escapeParameters="true">
         SELECT * FROM Document WHERE dc:title ILIKE '?%' AND
           ecm:mixinType = 'RetentionRule' AND retention_rule:enabled = 1 AND
-          retention_rule:applicationPolicy = 'manual' AND
-          ecm:isVersion = 0 AND ecm:isTrashed = 0
+          ecm:isTrashed = 0
+      </pattern>
+      <sort column="ecm:pos" ascending="true" />
+      <pageSize>50</pageSize>
+    </coreQueryPageProvider>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
+    point="providers">
+    <coreQueryPageProvider name="active_retention_rule">
+      <pattern quoteParameters="false" escapeParameters="true">
+        SELECT * FROM Document WHERE
+          ecm:mixinType = 'RetentionRule' AND retention_rule:enabled = 1 AND
+          ecm:isTrashed = 0
       </pattern>
       <sort column="ecm:pos" ascending="true" />
       <pageSize>50</pageSize>

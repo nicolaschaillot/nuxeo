@@ -32,14 +32,7 @@ import org.nuxeo.retention.adapters.RetentionRule;
  */
 public interface RetentionManager {
 
-    DocumentModel getRetentionRulesRoot(CoreSession session);
-
     DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session);
-
-    /*
-     * void executeRuleBeginActions(Record record, CoreSession session); void executeRuleEndActions(Record record,
-     * CoreSession session);
-     */
 
     void evalRules(Map<String, Set<String>> docsToCheckAndEvents);
 
@@ -48,5 +41,7 @@ public interface RetentionManager {
     void proceedRetentionExpired(Record record, CoreSession coreSession);
 
     List<String> getAcceptedEvents();
+
+    void invalidate();
 
 }

@@ -83,11 +83,17 @@ public class Record {
     }
 
     public boolean isRetentionExpired() {
+        if (!getDocument().isUnderRetentionOrLegalHold()) {
+            return true;
+        }
         Calendar retainUntil;
         return (retainUntil = getDocument().getRetainUntil()) == null || !Calendar.getInstance().before(retainUntil);
     }
 
     public boolean isRetainUntilInderterminate() {
+        if (!getDocument().isUnderRetentionOrLegalHold()) {
+            return false;
+        }
         Calendar retainUntil = getDocument().getRetainUntil();
         return retainUntil != null
                 ? CoreSession.RETAIN_UNTIL_INDETERMINATE.getTimeInMillis() == retainUntil.getTimeInMillis()

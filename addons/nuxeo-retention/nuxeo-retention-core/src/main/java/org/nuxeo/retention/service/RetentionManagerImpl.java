@@ -18,6 +18,8 @@
  */
 package org.nuxeo.retention.service;
 
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -36,10 +38,10 @@ import org.nuxeo.ecm.automation.core.operations.document.DeleteDocument;
 import org.nuxeo.ecm.automation.core.operations.document.LockDocument;
 import org.nuxeo.ecm.automation.core.operations.document.TrashDocument;
 import org.nuxeo.ecm.automation.core.operations.document.UnlockDocument;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
@@ -52,11 +54,13 @@ import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.actions.ELActionContext;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
 import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.workers.RuleEvaluationWorker;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -66,23 +70,14 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     private static final Logger log = LogManager.getLogger(RetentionManagerImpl.class);
 
-    @Override
-    public DocumentModel getRetentionRulesRoot(CoreSession session) {
-        DocumentModel retentionRulesRoot = session.createDocumentModel("/", RetentionConstants.RULES_CONTAINER_TYPE,
-                RetentionConstants.RULES_CONTAINER_TYPE);
-        return CoreInstance.doPrivileged(session, s -> {
-            return session.getOrCreateDocument(retentionRulesRoot, doc -> initRetentionRulesRoot(session, doc));
-        });
-    }
-
     protected DocumentModel initRetentionRulesRoot(CoreSession session, DocumentModel doc) {
         ACP acp = new ACPImpl();
-        ACE allowRead = new ACE(SecurityConstants.EVERYONE, SecurityConstants.READ, true);
         ACE allowEverything = new ACE(session.getPrincipal().getName(), SecurityConstants.EVERYTHING, true);
+        ACE allowEverythingRecordManagerGroup = new ACE(RetentionConstants.RECORD_MANAGER_GROUP_NAME,
+                SecurityConstants.EVERYTHING, true);
         ACE denyEverything = new ACE(SecurityConstants.EVERYONE, SecurityConstants.EVERYTHING, false);
         ACL acl = new ACLImpl();
-        // TODO Check who can create Retention Rules, a retention manager role/group?
-        acl.setACEs(new ACE[] { allowRead, allowEverything, denyEverything });
+        acl.setACEs(new ACE[] { allowEverything, allowEverythingRecordManagerGroup, denyEverything });
         acp.addACL(acl);
         doc.setACP(acp, true);
         return doc;
@@ -90,6 +85,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     @Override
     public DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
+        checkAttachRulePermission(document, session);
         if (!rule.isEnabled()) {
             throw new NuxeoException(String.format("Rule is disabled"));
         }
@@ -117,6 +113,15 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         session.setRetainUntil(document.getRef(), retainUntil);
         record.save(session);
         return session.getDocument(document.getRef());
+    }
+
+    private void checkAttachRulePermission(DocumentModel document, CoreSession session) {
+        NuxeoPrincipal principal = session.getPrincipal();
+        if (!principal.isAdministrator() && !principal.isMemberOf(RetentionConstants.RECORD_MANAGER_GROUP_NAME)) {
+            if (!session.hasPermission(document.getRef(), SecurityConstants.MAKE_RECORD)
+                    || !session.hasPermission(document.getRef(), SecurityConstants.SET_RETENTION))
+                throw new NuxeoException("User is not authorized to attach retention rule", SC_FORBIDDEN);
+        }
     }
 
     public void executeRuleBeginActions(Record record, CoreSession session) {
@@ -248,6 +253,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
                         filter.put(RetentionConstants.OBSOLETE_FIELD_ID, Long.valueOf(0));
                         List<String> evts = session.getProjection(filter, session.getIdField());
                         if (evts.isEmpty()) {
+                            log.trace("Empty accepted events, not chaching anything");
                             return evts;
                         }
                         acceptedEvents = evts;
@@ -258,6 +264,29 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             }
         }
         return acceptedEvents;
+    }
+
+    @Override
+    public void invalidate() {
+        acceptedEvents = null;
+    }
+
+    @Override
+    public void start(ComponentContext context) {
+        Framework.doPrivileged(() -> {
+            UserManager userManager = Framework.getService(UserManager.class);
+            if (userManager.getGroup(RetentionConstants.RECORD_MANAGER_GROUP_NAME) == null) {
+                DocumentModel groupModel = userManager.getBareGroupModel();
+                String groupSchemaName = userManager.getGroupSchemaName();
+                groupModel = userManager.getBareGroupModel();
+                groupModel.setPropertyValue(userManager.getGroupIdField(),
+                        RetentionConstants.RECORD_MANAGER_GROUP_NAME);
+                groupModel.setProperty(groupSchemaName, "groupname", RetentionConstants.RECORD_MANAGER_GROUP_NAME);
+                groupModel.setProperty(groupSchemaName, "grouplabel", RetentionConstants.RECORD_MANAGER_GROUP_NAME);
+                userManager.createGroup(groupModel);
+                log.debug("Created new {} group", RetentionConstants.RECORD_MANAGER_GROUP_NAME);
+            }
+        });
     }
 
 }

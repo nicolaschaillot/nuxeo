@@ -9,8 +9,8 @@
     target="org.nuxeo.ecm.platform.content.template.service.ContentTemplateService"
     point="factoryBinding">
 
-    <factoryBinding name="RetentionRulesFactory" factoryName="SimpleTemplateRootFactory"
-      targetType="Root" append="true">
+    <factoryBinding name="RetentionRulesFactory" factoryName="SimpleTemplateFactory"
+      targetType="Domain" append="true">
       <template>
         <templateItem typeName="RetentionRules" id="RetentionRules" title="RetentionRules" >
           <acl>
@@ -18,6 +18,8 @@
               granted="true" />
             <ace principal="administrators" permission="Everything"
               granted="true" /> 
+            <ace principal="RecordManager" permission="Everything"
+              granted="true" />
             <ace principal="Everyone" permission="Everything" granted="false" />
           </acl>
         </templateItem>
