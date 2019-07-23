@@ -89,10 +89,8 @@ limitations under the License.
 
     </style>
 
-    <nuxeo-operation id="fetchRRROp" op="Retention.FetchRulesRoot"></nuxeo-operation>
-
     <nuxeo-page-provider id="rrProvider"
-       provider="document_content"
+       provider="active_retention_rule"
        page-size="30"
        schemas="dublincore,common"
        enrichers="thumbnail">
@@ -126,10 +124,6 @@ limitations under the License.
       is: 'nuxeo-retention-rules',
       behaviors: [Nuxeo.RoutingBehavior, Nuxeo.I18nBehavior, Nuxeo.FiltersBehavior],
       properties: {
-        favorites: {
-          type: Object,
-          notify: true
-        },
         selectedRule: {
           type: Object,
           observer: '_selectedRuleChanged',
@@ -148,35 +142,13 @@ limitations under the License.
       },
 
       ready: function() {
-        window.addEventListener('added-to-favorites', this._refresh.bind(this));
-        window.addEventListener('removed-from-favorites', this._refresh.bind(this));
+        window.addEventListener('document-created', this._refresh.bind(this));
+        window.addEventListener('document-deleted', this._refresh.bind(this));
       },
 
       _refresh: function() {
-        this._fetchRulesRoot().then(function(rulesRoot) {
-          if (!rulesRoot) {
-            return;
-          }
-          this.$.rrProvider.params = [rulesRoot.uid];
-          this.$.rrProvider.page = 1;
-          this.$.ruleList.fetch();
-        }.bind(this));
-      },
-
-      _fetchRulesRoot: function() {
-        if (this.rulesRoot) {
-          return Promise.resolve(this.rulesRoot);
-        } else {
-          return this.$.fetchRRROp.execute()
-            .then(function(resp) {
-              if (resp.status === 204) {
-                this.rulesRoot = null;
-              } else {
-                this.rulesRoot = resp;
-              }
-              return this.rulesRoot;
-            }.bind(this));
-        }
+        this.$.rrProvider.page = 1;
+        this.$.ruleList.fetch();
       },
 
       _computedClass: function(isSelected) {

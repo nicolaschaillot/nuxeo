@@ -20,29 +20,49 @@ limitations under the License.
 
 <nuxeo-slot-content name="retentionRulesDrawerItem" slot="DRAWER_ITEMS" order="65">
   <template>
-    <nuxeo-menu-icon name="retentionRules" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
+    <nuxeo-filter user="[[user]]" group="RecordManager">
+      <template>
+        <nuxeo-menu-icon name="retentionRules" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
 <nuxeo-slot-content name="retentionRulesDrawerPage" slot="DRAWER_PAGES">
   <template>
-    <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
+    <nuxeo-filter user="[[user]]" group="RecordManager">
+      <template>
+        <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
 
 <nuxeo-slot-content name="holdToggleDocumentAction" slot="DOCUMENT_ACTIONS" order="75">
   <template>
-    <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
+    <nuxeo-filter user="[[user]]" permissions="MakeRecord,ManageLegalHold">
+      <template>
+        <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
 
 <nuxeo-slot-content name="retainDocumentAction" slot="DOCUMENT_ACTIONS" order="77">
   <template>
-    <nuxeo-retain-button document="[[document]]"></nuxeo-retain-button>
+    <nuxeo-filter user="[[user]]" permissions="MakeRecord,SetRetention">
+      <template>
+        <nuxeo-retain-button document="[[document]]"></nuxeo-retain-button>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
 
 <nuxeo-slot-content name="attachRetentionRuleDocumentAction" slot="DOCUMENT_ACTIONS" order="78">
   <template>
-    <nuxeo-attach-rule-button document="[[document]]"></nuxeo-attach-rule-button>
+    <nuxeo-filter user="[[user]]" permissions="MakeRecord,SetRetention">
+      <template>
+        <nuxeo-attach-rule-button document="[[document]]"></nuxeo-attach-rule-button>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
