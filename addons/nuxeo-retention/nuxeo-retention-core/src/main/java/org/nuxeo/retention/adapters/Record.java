@@ -18,10 +18,14 @@
  */
 package org.nuxeo.retention.adapters;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,8 +54,27 @@ public class Record {
         document = doc;
     }
 
-    public String[] getBeginActions() {
-        return (String[]) document.getPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP);
+    public List<String> getBeginActions() {
+        Serializable propertyValue = document.getPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP);
+        if (propertyValue == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList((String[]) propertyValue);
+    }
+
+    public List<String> getDocTypes() {
+        @SuppressWarnings("unchecked")
+        List<String> propertyValue = (List<String>) document.getPropertyValue(RetentionConstants.DOC_TYPES_PROP);
+        return propertyValue;
+    }
+
+    public void setDocTypes(List<String> types) {
+        document.setPropertyValue(RetentionConstants.DOC_TYPES_PROP, (Serializable) types);
+    }
+
+    public boolean isDocTypeAccepted(String docType) {
+        List<String> types = getDocTypes();
+        return types == null || types.isEmpty() || types.contains(docType);
     }
 
     public DocumentModel getDocument() {
@@ -74,8 +97,12 @@ public class Record {
         return (Long) document.getPropertyValue(RetentionConstants.DURATION_YEARS_PROP);
     }
 
-    public String[] getEndActions() {
-        return (String[]) document.getPropertyValue(RetentionConstants.END_ACTIONS_PROP);
+    public List<String> getEndActions() {
+        Serializable propertyValue = document.getPropertyValue(RetentionConstants.END_ACTIONS_PROP);
+        if (propertyValue == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList((String[]) propertyValue);
     }
 
     public String getExpression() {
@@ -135,8 +162,8 @@ public class Record {
         document.getContextData().remove(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE);
     }
 
-    public void setBeginActions(String[] actions) {
-        document.setPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP, actions);
+    public void setBeginActions(List<String> actions) {
+        document.setPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP, (Serializable) actions);
     }
 
     public void setDurationDays(Long days) {
@@ -155,8 +182,8 @@ public class Record {
         document.setPropertyValue(RetentionConstants.DURATION_YEARS_PROP, years);
     }
 
-    public void setEndActions(String[] actions) {
-        document.setPropertyValue(RetentionConstants.END_ACTIONS_PROP, actions);
+    public void setEndActions(List<String> actions) {
+        document.setPropertyValue(RetentionConstants.END_ACTIONS_PROP, (Serializable) actions);
     }
 
     public void setExpression(String expression) {

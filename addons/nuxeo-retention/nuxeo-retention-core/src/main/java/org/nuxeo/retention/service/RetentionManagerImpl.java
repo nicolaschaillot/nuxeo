@@ -89,6 +89,9 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (!rule.isEnabled()) {
             throw new NuxeoException(String.format("Rule is disabled"));
         }
+        if (!rule.isDocTypeAccepted(document.getType())) {
+            throw new NuxeoException("Rule does not accept this document type");
+        }
         document.addFacet(RetentionConstants.RECORD_FACET);
         Record record = document.getAdapter(Record.class);
         rule.copyRetentionInfo(record);
@@ -133,7 +136,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         executeRuleActions(record.getDocument(), record.getEndActions(), session);
     }
 
-    protected void executeRuleActions(DocumentModel doc, String[] actionIds, CoreSession session) {
+    protected void executeRuleActions(DocumentModel doc, List<String> actionIds, CoreSession session) {
         if (actionIds != null) {
             AutomationService automationService = Framework.getService(AutomationService.class);
             for (String operationId : actionIds) {

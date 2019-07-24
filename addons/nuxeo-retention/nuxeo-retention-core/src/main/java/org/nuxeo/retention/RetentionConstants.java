@@ -68,4 +68,6 @@ public class RetentionConstants {
 
     public static final String MANAGE_RECORD_PERMISSION = "ManageRecord";
 
+    public static final String DOC_TYPES_PROP = "retention_rule:docTypes";
+
 }

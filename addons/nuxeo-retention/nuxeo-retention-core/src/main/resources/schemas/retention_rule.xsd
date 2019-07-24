@@ -18,4 +18,6 @@
   
   <xs:element name="enabled" type="xs:boolean" default="true"/>
 
+  <xs:element name="docTypes" type="nxs:stringList"/>
+
 </xs:schema>

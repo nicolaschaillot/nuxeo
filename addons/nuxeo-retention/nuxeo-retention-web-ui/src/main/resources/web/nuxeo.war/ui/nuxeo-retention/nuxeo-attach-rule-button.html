@@ -50,6 +50,7 @@ limitations under the License.
           placeholder="[[i18n('retention.rule.attachButton.label.placeholder')]]"
           selected-item="{{rule}}"
           min-chars="0"
+          query-results-filter="[[_filterRules]]"
           page-provider="manual_retention_rule_suggestion"
           repository="[[document.repository]]">
         </nuxeo-document-suggestion>
@@ -94,6 +95,14 @@ limitations under the License.
           computed: '_computeLabel(i18n)',
         },
 
+        // Dirty post filtering but hey! It's not like we can do a OR in NXQL
+        _filterRules: {
+          type: Function,
+          value: function() {
+            return this._filterRules.bind(this);
+          },
+        },
+
         rule: Object,
       },
 
@@ -124,6 +133,14 @@ limitations under the License.
       _isValid: function() {
         return this.document && this.rule;
       },
+
+      _filterRules: function(rule) {
+        var acceptedTypes = rule.properties['retention_rule:docTypes'];
+        if (!acceptedTypes || acceptedTypes.length === 0) {
+          return true;
+        }
+        return acceptedTypes.indexOf(this.document.type) !== -1;
+      }
 
     });
   </script>

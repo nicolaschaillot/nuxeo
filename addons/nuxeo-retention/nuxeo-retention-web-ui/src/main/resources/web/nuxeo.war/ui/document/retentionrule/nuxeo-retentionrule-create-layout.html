@@ -49,12 +49,13 @@ limitations under the License.
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <nuxeo-select id="applicationPolicyDropdown" selected="{{document.properties.retention_rule:applicationPolicy}}"
         attr-for-selected="key"
+        role="widget"
         placeholder="[[i18n('retention.rule.label.applicationPolicy.placehodler')]]"
         label="[[i18n('retention.rule.label.applicationPolicy.description')]]" required>
         <paper-item key="auto" disabled>[[i18n('retention.rule.label.applicationPolicy.auto')]]</paper-item>
         <paper-item key="manual">[[i18n('retention.rule.label.applicationPolicy.manual')]]</paper-item>
       </nuxeo-select>
-      <dom-if if="[[_isAuto(document)]]">
+      <dom-if if="[[_isAuto(document.properties.retention_rule:applicationPolicy)]]">
         <template>
           <nuxeo-input role="widget"
                        label="[[i18n('retention.rule.label.applicationPolicy.auto.description')]]"
@@ -65,9 +66,18 @@ limitations under the License.
           </nuxeo-input>
         </template>
       </dom-if>
-      <dom-if if="[[_isManual(document)]]">
+      <dom-if if="[[_isManual(document.properties.retention_rule:applicationPolicy)]]">
         <template>
           [[i18n('retention.rule.label.applicationPolicy.manual.description')]]
+          <nuxeo-selectivity data="[[docTypes]]"
+             min-chars="0"
+             role="widget"
+             multiple
+             required
+             label="[[i18n('retention.rule.label.applicationPolicy.docTypes')]]"
+             placeholder="[[i18n('retention.rule.label.applicationPolicy.docTypes.placeholder')]]"
+             value="{{document.properties.retention_rule:docTypes}}">
+          </nuxeo-selectivity>
         </template>
       </dom-if>
     </nuxeo-card>
@@ -75,6 +85,7 @@ limitations under the License.
     <nuxeo-card heading="[[i18n('retention.rule.label.startPolicy.heading')]]">
       <nuxeo-select id="startPolicyDropdown" selected="{{document.properties.retention_def:startingPointPolicy}}"
         attr-for-selected="key"
+        role="widget"
         placeholder="[[i18n('retention.rule.label.startPolicy.placehodler')]]"
         label="[[i18n('retention.rule.label.startPolicy.description')]]" required>
         <paper-item key="immediate">[[i18n('retention.rule.label.startPolicy.immediate')]]</paper-item>

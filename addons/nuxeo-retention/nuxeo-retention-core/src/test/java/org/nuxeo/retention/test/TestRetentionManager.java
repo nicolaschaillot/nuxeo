@@ -20,6 +20,9 @@ package org.nuxeo.retention.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
@@ -28,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.retention.adapters.Record;
@@ -47,27 +51,40 @@ public class TestRetentionManager extends RetentionTestCase {
     protected BulkService bulkService;
 
     @Test
+    public void testRuleOnlyFile() throws InterruptedException {
+        DocumentModel workspace = session.createDocumentModel("/", "workspace", "Workspace");
+        workspace = session.createDocument(workspace);
+        workspace = session.saveDocument(workspace);
+        try {
+            service.attachRule(workspace, createManualImmediateRuleMillis(100L), session);
+            fail("Should not accept workspace document");
+        } catch (NuxeoException e) {
+            // expected
+        }
+    }
+
+    @Test
     public void test1DayManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, 0L, 0L, 1L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 0L, 0L, 1L, 0L, null, null), 1_000);
     }
 
     @Test
     public void test1MonthManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, 0L, 1L, 0L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 0L, 1L, 0L, 0L, null, null), 1_000);
     }
 
     @Test
     public void test1YearManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, 1L, 0L, 0L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 1L, 0L, 0L, 0L, null, null), 1_000);
     }
 
     @Test
     public void testManualImmediateRuleWithActions() throws InterruptedException {
         RetentionRule testRule = createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, 100L,
-                new String[] { "Document.Lock" }, new String[] { "Document.Unlock" });
+                Arrays.asList("Document.Lock"), Arrays.asList("Document.Unlock"));
 
         file = service.attachRule(file, testRule, session);
         assertTrue(session.isRecord(file.getRef()));

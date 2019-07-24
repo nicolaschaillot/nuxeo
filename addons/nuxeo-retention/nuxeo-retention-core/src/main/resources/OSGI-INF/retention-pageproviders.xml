@@ -1,31 +1,33 @@
 <?xml version="1.0"?>
-
 <component name="org.nuxeo.retention.pageprovider.contrib">
-
-  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
+  <extension
+    target="org.nuxeo.ecm.platform.query.api.PageProviderService"
     point="providers">
-    <coreQueryPageProvider name="manual_retention_rule_suggestion">
-      <pattern quoteParameters="false" escapeParameters="true">
-        SELECT * FROM Document WHERE dc:title ILIKE '?%' AND
-          ecm:mixinType = 'RetentionRule' AND retention_rule:enabled = 1 AND
+
+    <coreQueryPageProvider
+      name="manual_retention_rule_suggestion">
+      <whereClause>
+        <predicate parameter="retention_rule:docTypes" operator="=">
+          <field name="docType" />
+        </predicate>
+        <fixedPart quoteParameters="false" escapeParameters="true"> dc:title ILIKE '?%' AND ecm:mixinType =
+          'RetentionRule' AND retention_rule:enabled = 1 AND
           ecm:isTrashed = 0
+        </fixedPart>
+      </whereClause>
+      <sort column="ecm:pos" ascending="true" />
+      <pageSize>50</pageSize>
+    </coreQueryPageProvider>
+
+    <coreQueryPageProvider
+      name="active_retention_rule">
+      <pattern quoteParameters="false" escapeParameters="true"> SELECT
+        * FROM Document WHERE ecm:mixinType = 'RetentionRule' AND
+        retention_rule:enabled = 1 AND ecm:isTrashed = 0
       </pattern>
       <sort column="ecm:pos" ascending="true" />
       <pageSize>50</pageSize>
     </coreQueryPageProvider>
-  </extension>
 
-  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
-    point="providers">
-    <coreQueryPageProvider name="active_retention_rule">
-      <pattern quoteParameters="false" escapeParameters="true">
-        SELECT * FROM Document WHERE
-          ecm:mixinType = 'RetentionRule' AND retention_rule:enabled = 1 AND
-          ecm:isTrashed = 0
-      </pattern>
-      <sort column="ecm:pos" ascending="true" />
-      <pageSize>50</pageSize>
-    </coreQueryPageProvider>
   </extension>
-
 </component>
