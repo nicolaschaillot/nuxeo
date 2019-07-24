@@ -126,7 +126,13 @@ pipeline {
             ----------------------------------------
             Image tag: ${VERSION}
             """
-            sh 'skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml'
+            // push image to the Jenkins X internal Docker registry
+            echo "Pushing Docker image to ${DOCKER_REGISTRY}"
+            sh "TARGET_DOCKER_REGISTRY=${DOCKER_REGISTRY} skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml"
+
+            // push image to the public Docker registry
+            echo "Pushing Docker image to ${PUBLIC_DOCKER_REGISTRY}"
+            sh "TARGET_DOCKER_REGISTRY=${PUBLIC_DOCKER_REGISTRY} skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml"
           }
         }
       }
