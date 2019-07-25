@@ -92,8 +92,8 @@ public class CommentManagerImpl implements CommentManager {
     }
 
     public List<DocumentModel> getComments(DocumentModel docModel) {
-        Map<String, Object> ctxMap = Collections.<String, Object> singletonMap(
-                ResourceAdapter.CORE_SESSION_CONTEXT_KEY, docModel.getCoreSession());
+        Map<String, Object> ctxMap = Collections.<String, Object> singletonMap(ResourceAdapter.CORE_SESSION_CONTEXT_KEY,
+                docModel.getCoreSession());
         RelationManager relationManager = Framework.getService(RelationManager.class);
         Graph graph = relationManager.getGraph(config.graphName, docModel.getCoreSession());
         Resource docResource = relationManager.getResource(config.documentNamespace, docModel, ctxMap);
@@ -271,8 +271,8 @@ public class CommentManagerImpl implements CommentManager {
         return parent;
     }
 
-    private static void notifyEvent(CoreSession session, DocumentModel docModel, String eventType,
-            DocumentModel parent, DocumentModel child, NuxeoPrincipal principal) {
+    private static void notifyEvent(CoreSession session, DocumentModel docModel, String eventType, DocumentModel parent,
+            DocumentModel child, NuxeoPrincipal principal) {
 
         DocumentEventContext ctx = new DocumentEventContext(session, principal, docModel);
         Map<String, Serializable> props = new HashMap<String, Serializable>();
@@ -358,7 +358,8 @@ public class CommentManagerImpl implements CommentManager {
     }
 
     public void deleteComment(DocumentModel docModel, DocumentModel comment) {
-        NuxeoPrincipal author = comment.getCoreSession() != null ? (NuxeoPrincipal) comment.getCoreSession().getPrincipal()
+        NuxeoPrincipal author = comment.getCoreSession() != null
+                ? (NuxeoPrincipal) comment.getCoreSession().getPrincipal()
                 : getAuthor(comment);
         try (CoreSession session = CoreInstance.openCoreSessionSystem(docModel.getRepositoryName())) {
             DocumentRef ref = comment.getRef();
@@ -374,8 +375,7 @@ public class CommentManagerImpl implements CommentManager {
         }
     }
 
-    public DocumentModel createComment(DocumentModel docModel, DocumentModel parent, DocumentModel child)
-            {
+    public DocumentModel createComment(DocumentModel docModel, DocumentModel parent, DocumentModel child) {
         try (CoreSession session = CoreInstance.openCoreSessionSystem(docModel.getRepositoryName())) {
             DocumentModel parentDocModel = session.getDocument(parent.getRef());
             DocumentModel newComment = internalCreateComment(session, parentDocModel, child, null);
@@ -402,8 +402,8 @@ public class CommentManagerImpl implements CommentManager {
     }
 
     public List<DocumentModel> getDocumentsForComment(DocumentModel comment) {
-        Map<String, Object> ctxMap = Collections.<String, Object> singletonMap(
-                ResourceAdapter.CORE_SESSION_CONTEXT_KEY, comment.getCoreSession());
+        Map<String, Object> ctxMap = Collections.<String, Object> singletonMap(ResourceAdapter.CORE_SESSION_CONTEXT_KEY,
+                comment.getCoreSession());
         RelationManager relationManager = Framework.getService(RelationManager.class);
         Graph graph = relationManager.getGraph(config.graphName, comment.getCoreSession());
         Resource commentResource = relationManager.getResource(config.commentNamespace, comment, ctxMap);
@@ -424,8 +424,8 @@ public class CommentManagerImpl implements CommentManager {
         List<DocumentModel> docList = new ArrayList<DocumentModel>();
         for (Statement stmt : statementList) {
             QNameResourceImpl subject = (QNameResourceImpl) stmt.getObject();
-            DocumentModel docModel = (DocumentModel) relationManager.getResourceRepresentation(
-                    config.documentNamespace, subject, ctxMap);
+            DocumentModel docModel = (DocumentModel) relationManager.getResourceRepresentation(config.documentNamespace,
+                    subject, ctxMap);
             if (docModel == null) {
                 log.warn("Could not adapt comment relation subject to a document "
                         + "model; check the service relation adapters configuration");
@@ -437,8 +437,7 @@ public class CommentManagerImpl implements CommentManager {
 
     }
 
-    public DocumentModel createLocatedComment(DocumentModel docModel, DocumentModel comment, String path)
-            {
+    public DocumentModel createLocatedComment(DocumentModel docModel, DocumentModel comment, String path) {
         try (CoreSession session = CoreInstance.openCoreSessionSystem(docModel.getRepositoryName())) {
             DocumentModel createdComment = internalCreateComment(session, docModel, comment, path);
             session.save();
