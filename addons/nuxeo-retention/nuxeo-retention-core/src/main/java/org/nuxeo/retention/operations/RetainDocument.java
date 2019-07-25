@@ -41,7 +41,7 @@ public class RetainDocument {
     @Context
     protected CoreSession session;
 
-    @Param(name = "until")
+    @Param(name = "until", required = false)
     protected Calendar until;
 
     @OperationMethod(collector = DocumentModelCollector.class)
