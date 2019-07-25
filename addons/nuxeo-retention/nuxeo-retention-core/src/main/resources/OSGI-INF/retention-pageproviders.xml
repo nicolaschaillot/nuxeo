@@ -29,5 +29,53 @@
       <pageSize>50</pageSize>
     </coreQueryPageProvider>
 
+    <genericPageProvider name="retention_search"
+      class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+      <whereClause docType="RetentionSearch">
+        <fixedPart>
+          ecm:parentId IS NOT NULL AND ecm:isRecord = 1
+        </fixedPart>
+        <predicate parameter="ecm:fulltext" operator="FULLTEXT">
+          <field schema="rendition_search" name="ecm_fulltext" />
+        </predicate>
+      </whereClause>
+      <aggregates>
+        <aggregate id="doc_type_agg" type="terms" parameter="ecm:primaryType">
+          <field schema="retention_search" name="doc_type_agg" />
+          <properties>
+            <property name="size">10</property>
+          </properties>
+        </aggregate>
+        <aggregate id="ecm_retain_agg" type="date_range" parameter="ecm:retainUntil">
+          <field schema="retention_search" name="ecm_retain_agg" />
+          <properties>
+            <property name="format">"dd-MM-yyyy"</property>
+          </properties>
+          <dateRanges>
+            <dateRange key="next24Hours" fromDate="now" toDate="now+24H"/>
+            <dateRange key="beforeAWeek" fromDate="now+24H" toDate="now+7d"/>
+            <dateRange key="beforeAMonth" fromDate="now+7d" toDate="now+1M"/>
+            <dateRange key="beforeAYear" fromDate="now+1M" toDate="now+1y"/>
+            <dateRange key="afterAYear" fromDate="now+1y" toDate="now+1000y"/>
+            <dateRange key="indeterminate" fromDate="now+1000y"/>
+          </dateRanges>
+        </aggregate>
+      </aggregates>
+      <sort column="ecm:retainUntil" ascending="true" />
+      <quickFilters>
+        <quickFilter name="exceptTrashed">
+          <clause>ecm:isTrashed = 0</clause>
+        </quickFilter>
+        <quickFilter name="retentionExpired">
+          <clause>ecm:hasLegalHold = 0</clause>
+          <clause>ecm:retainUntil IS NULL</clause>
+        </quickFilter>
+        <quickFilter name="hasLegalHold">
+          <clause>ecm:hasLegalHold = 1</clause>
+        </quickFilter>
+      </quickFilters>
+      <pageSize>20</pageSize>
+    </genericPageProvider>
+
   </extension>
 </component>

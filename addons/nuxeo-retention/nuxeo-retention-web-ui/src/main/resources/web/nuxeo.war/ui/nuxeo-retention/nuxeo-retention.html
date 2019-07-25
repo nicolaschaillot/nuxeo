@@ -20,7 +20,7 @@ limitations under the License.
 
 <nuxeo-slot-content name="retentionRulesDrawerItem" slot="DRAWER_ITEMS" order="65">
   <template>
-    <nuxeo-filter user="[[user]]" group="RecordManager">
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
       <template>
         <nuxeo-menu-icon name="retentionRules" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
       </template>
@@ -29,7 +29,7 @@ limitations under the License.
 </nuxeo-slot-content>
 <nuxeo-slot-content name="retentionRulesDrawerPage" slot="DRAWER_PAGES">
   <template>
-    <nuxeo-filter user="[[user]]" group="RecordManager">
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
       <template>
         <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
       </template>
@@ -64,5 +64,26 @@ limitations under the License.
         <nuxeo-attach-rule-button document="[[document]]"></nuxeo-attach-rule-button>
       </template>
     </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="retentionSearchMenuButton" slot="DRAWER_ITEMS" order="32">
+  <template>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+        <nuxeo-menu-icon name="retentionSearch" icon="nuxeo:search-retention" label="retention.search"></nuxeo-menu-icon>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+<nuxeo-slot-content name="retentionSearchMenuPage" slot="DRAWER_PAGES">
+  <template>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+        <nuxeo-search-form name="retentionSearch" search-name="retention" auto
+                           provider="retention_search" schemas="dublincore,common,retention_def">
+        </nuxeo-search-form>
+     </template>
+   </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
