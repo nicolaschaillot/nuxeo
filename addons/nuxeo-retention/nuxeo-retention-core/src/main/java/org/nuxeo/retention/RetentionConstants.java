@@ -70,4 +70,6 @@ public class RetentionConstants {
 
     public static final String DOC_TYPES_PROP = "retention_rule:docTypes";
 
+    public static final String METADATA_XPATH_PROP = "retention_def:metadataXPath";
+
 }

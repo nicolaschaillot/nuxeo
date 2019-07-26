@@ -32,21 +32,24 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
+import org.nuxeo.ecm.core.schema.SchemaManager;
+import org.nuxeo.ecm.core.schema.types.primitives.DateType;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.retention.RetentionConstants;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 11.1
  */
 public class Record {
 
-    private static final Logger log = LogManager.getLogger(Record.class);
-
     public enum StartingPointPolicy {
         IMMEDIATE, AFTER_DELAY, EVENT_BASED, METADATA_BASED
     }
+
+    private static final Logger log = LogManager.getLogger(Record.class);
 
     protected DocumentModel document;
 
@@ -66,15 +69,6 @@ public class Record {
         @SuppressWarnings("unchecked")
         List<String> propertyValue = (List<String>) document.getPropertyValue(RetentionConstants.DOC_TYPES_PROP);
         return propertyValue;
-    }
-
-    public void setDocTypes(List<String> types) {
-        document.setPropertyValue(RetentionConstants.DOC_TYPES_PROP, (Serializable) types);
-    }
-
-    public boolean isDocTypeAccepted(String docType) {
-        List<String> types = getDocTypes();
-        return types == null || types.isEmpty() || types.contains(docType);
     }
 
     public DocumentModel getDocument() {
@@ -109,12 +103,63 @@ public class Record {
         return (String) document.getPropertyValue(RetentionConstants.EXPRESSION_PROP);
     }
 
-    public boolean isRetentionExpired() {
-        if (!getDocument().isUnderRetentionOrLegalHold()) {
-            return true;
+    public String getMetadataXpath() {
+        return (String) document.getPropertyValue(RetentionConstants.METADATA_XPATH_PROP);
+    }
+
+    public Calendar getRetainUntilDateFromNow() {
+        return getRetainUntilDateFrom(LocalDateTime.now());
+    }
+
+    protected Calendar getRetainUntilDateFrom(LocalDateTime datetime) {
+        LocalDateTime localDateTime = datetime.plusYears(getDurationYears())
+                                              .plusMonths(getDurationMonths())
+                                              .plusDays(getDurationDays())
+                                              .plusNanos(getDurationMillis() * 1000000);
+        return GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()));
+    }
+
+    public Calendar getRetainUntilDateFrom(Calendar calendar) {
+        LocalDateTime datetime = LocalDateTime.ofInstant(calendar.getTime().toInstant(), ZoneId.systemDefault());
+        return getRetainUntilDateFrom(datetime);
+    }
+
+    public String getStartingPointEvent() {
+        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_EVENT_PROP);
+    }
+
+    public String getStartingPointExpression() {
+        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_EXPRESSION_PROP);
+    }
+
+    public StartingPointPolicy getStartingPointPolicy() {
+        String value = (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP);
+        if (value != null) {
+            return StartingPointPolicy.valueOf(value.toUpperCase());
         }
-        Calendar retainUntil;
-        return (retainUntil = getDocument().getRetainUntil()) == null || !Calendar.getInstance().before(retainUntil);
+        return null;
+
+    }
+
+    public boolean isAfterDely() {
+        return StartingPointPolicy.AFTER_DELAY.equals(getStartingPointPolicy());
+    }
+
+    public boolean isDocTypeAccepted(String docType) {
+        List<String> types = getDocTypes();
+        return types == null || types.isEmpty() || types.contains(docType);
+    }
+
+    public boolean isEventBased() {
+        return StartingPointPolicy.EVENT_BASED.equals(getStartingPointPolicy());
+    }
+
+    public boolean isImmediate() {
+        return StartingPointPolicy.IMMEDIATE.equals(getStartingPointPolicy());
+    }
+
+    public boolean isMetadataBased() {
+        return StartingPointPolicy.METADATA_BASED.equals(getStartingPointPolicy());
     }
 
     public boolean isRetainUntilInderterminate() {
@@ -127,25 +172,12 @@ public class Record {
                 : false;
     }
 
-    public Calendar getRetainUntilDateFromNow() {
-        LocalDateTime localDateTime = LocalDateTime.now()
-                                                   .plusYears(getDurationYears())
-                                                   .plusMonths(getDurationMonths())
-                                                   .plusDays(getDurationDays())
-                                                   .plusNanos(getDurationMillis() * 1000000);
-        return GregorianCalendar.from(localDateTime.atZone(ZoneId.systemDefault()));
-    }
-
-    public String getStartingPointExpression() {
-        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_EXPRESSION_PROP);
-    }
-
-    public String getStartingPointEvent() {
-        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_EVENT_PROP);
-    }
-
-    public void setStartingPointEvent(String eventId) {
-        document.setPropertyValue(RetentionConstants.STARTING_POINT_EVENT_PROP, eventId);
+    public boolean isRetentionExpired() {
+        if (!getDocument().isUnderRetentionOrLegalHold()) {
+            return true;
+        }
+        Calendar retainUntil;
+        return (retainUntil = getDocument().getRetainUntil()) == null || !Calendar.getInstance().before(retainUntil);
     }
 
     public void save(CoreSession session) {
@@ -164,6 +196,10 @@ public class Record {
 
     public void setBeginActions(List<String> actions) {
         document.setPropertyValue(RetentionConstants.BEGIN_ACTIONS_PROP, (Serializable) actions);
+    }
+
+    public void setDocTypes(List<String> types) {
+        document.setPropertyValue(RetentionConstants.DOC_TYPES_PROP, (Serializable) types);
     }
 
     public void setDurationDays(Long days) {
@@ -190,31 +226,25 @@ public class Record {
         document.setPropertyValue(RetentionConstants.EXPRESSION_PROP, expression);
     }
 
+    public void setMetadataXpath(String xpath) {
+        if (xpath != null) {
+            SchemaManager schemaManager = Framework.getService(SchemaManager.class);
+            if (!(schemaManager.getField(xpath).getType() instanceof DateType)) {
+                throw new IllegalArgumentException("xpath must be of type DateType");
+            }
+        }
+        document.setPropertyValue(RetentionConstants.METADATA_XPATH_PROP, xpath);
+    }
+
+    public void setStartingPointEvent(String eventId) {
+        document.setPropertyValue(RetentionConstants.STARTING_POINT_EVENT_PROP, eventId);
+    }
+
     public void setStartingPointExpression(String expression) {
         document.setPropertyValue(RetentionConstants.STARTING_POINT_EXPRESSION_PROP, expression);
     }
 
-    public String getStartingPointPolicy() {
-        return (String) document.getPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP);
-    }
-
     public void setStartingPointPolicy(StartingPointPolicy policy) {
         document.setPropertyValue(RetentionConstants.STARTING_POINT_POLICY_PROP, policy.name().toLowerCase());
-    }
-
-    public boolean isAfterDely() {
-        return StartingPointPolicy.AFTER_DELAY.name().toLowerCase().equals(getStartingPointPolicy());
-    }
-
-    public boolean isMetadataBased() {
-        return StartingPointPolicy.METADATA_BASED.name().toLowerCase().equals(getStartingPointPolicy());
-    }
-
-    public boolean isImmediate() {
-        return StartingPointPolicy.IMMEDIATE.name().toLowerCase().equals(getStartingPointPolicy());
-    }
-
-    public boolean isEventBased() {
-        return StartingPointPolicy.EVENT_BASED.name().toLowerCase().equals(getStartingPointPolicy());
     }
 }

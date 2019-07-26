@@ -69,12 +69,15 @@ public class RetentionRule extends Record {
         record.setDurationMillis(getDurationMillis());
         record.setBeginActions(getBeginActions());
         record.setEndActions(getEndActions());
+        record.setStartingPointPolicy(getStartingPointPolicy());
         if (isAuto()) {
             record.setExpression(getExpression());
         }
         if (isEventBased()) {
             record.setStartingPointEvent(getStartingPointEvent());
             record.setStartingPointExpression(getStartingPointExpression());
+        } else if (record.isMetadataBased()) {
+            record.setMetadataXpath(getMetadataXpath());
         }
     }
 

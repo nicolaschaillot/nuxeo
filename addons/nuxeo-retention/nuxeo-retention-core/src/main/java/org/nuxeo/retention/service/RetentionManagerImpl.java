@@ -42,12 +42,9 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.core.api.security.ACE;
-import org.nuxeo.ecm.core.api.security.ACL;
-import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
-import org.nuxeo.ecm.core.api.security.impl.ACLImpl;
-import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
+import org.nuxeo.ecm.core.schema.types.primitives.DateType;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.Session;
@@ -70,19 +67,6 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     private static final Logger log = LogManager.getLogger(RetentionManagerImpl.class);
 
-    protected DocumentModel initRetentionRulesRoot(CoreSession session, DocumentModel doc) {
-        ACP acp = new ACPImpl();
-        ACE allowEverything = new ACE(session.getPrincipal().getName(), SecurityConstants.EVERYTHING, true);
-        ACE allowEverythingRecordManagerGroup = new ACE(RetentionConstants.RECORD_MANAGER_GROUP_NAME,
-                SecurityConstants.EVERYTHING, true);
-        ACE denyEverything = new ACE(SecurityConstants.EVERYONE, SecurityConstants.EVERYTHING, false);
-        ACL acl = new ACLImpl();
-        acl.setACEs(new ACE[] { allowEverything, allowEverythingRecordManagerGroup, denyEverything });
-        acp.addACL(acl);
-        doc.setACP(acp, true);
-        return doc;
-    }
-
     @Override
     public DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
         checkAttachRulePermission(document, session);
@@ -92,29 +76,54 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (!rule.isDocTypeAccepted(document.getType())) {
             throw new NuxeoException("Rule does not accept this document type");
         }
-        document.addFacet(RetentionConstants.RECORD_FACET);
-        Record record = document.getAdapter(Record.class);
-        rule.copyRetentionInfo(record);
-        executeRuleBeginActions(record, session);
-        session.saveDocument(document);
         session.makeRecord(document.getRef());
         final Calendar retainUntil;
         if (rule.isImmediate()) {
             retainUntil = rule.getRetainUntilDateFromNow();
+            log.debug("Attaching immediate rule until {}",
+                    () -> RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime()));
         } else if (rule.isAfterDely()) {
+            log.debug("Attaching after delay rule");
             throw new UnsupportedOperationException("After delay not yet implemented");
         } else if (rule.isEventBased()) {
             retainUntil = CoreSession.RETAIN_UNTIL_INDETERMINATE;
+            log.debug("Attaching event-based rule on {} matching \"{}\"", rule.getStartingPointEvent(),
+                    rule.getStartingPointExpression());
         } else if (rule.isMetadataBased()) {
-            throw new UnsupportedOperationException("Metadata based not yet implemented");
+            String xpath = rule.getMetadataXpath();
+            if (StringUtils.isBlank(xpath)) {
+                throw new NuxeoException("Metadata field is null");
+            }
+            Property prop = document.getProperty(xpath);
+            if (!(prop.getType() instanceof DateType)) {
+                throw new NuxeoException(
+                        String.format("Field %s of type % is expected to have a DateType", xpath, prop.getType()));
+            }
+            Calendar value = (Calendar) prop.getValue();
+            if (value == null) {
+                retainUntil = rule.getRetainUntilDateFromNow();
+            } else {
+                retainUntil = rule.getRetainUntilDateFrom(value);
+                Calendar now = Calendar.getInstance();
+                if (now.after(value)) {
+                    log.info(
+                            "Metabased-based rule found past date {} as retention expiration date on {} from {} property. Ignoring...",
+                            () -> RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime()),
+                            document::getPathAsString, () -> xpath);
+                    return session.getDocument(document.getRef());
+                }
+            }
+            log.debug("Attaching rule base on {} with value {}", () -> xpath,
+                    () -> RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime()));
         } else {
             throw new IllegalArgumentException("Unknown starting point policy: " + rule.getStartingPointPolicy());
         }
-        log.debug("Setting retention on {} until {}", document::getPathAsString,
-                () -> retainUntil != null ? RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime())
-                        : "indeterminate");
-        session.setRetainUntil(document.getRef(), retainUntil);
+        document.addFacet(RetentionConstants.RECORD_FACET);
+        Record record = document.getAdapter(Record.class);
+        rule.copyRetentionInfo(record);
+        executeRuleBeginActions(record, session);
         record.save(session);
+        session.setRetainUntil(document.getRef(), retainUntil);
         return session.getDocument(document.getRef());
     }
 
@@ -215,23 +224,34 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (record == null) {
             return; // nothing to do
         }
+        if (!record.isEventBased()) {
+            log.trace("Record is not event-based");
+            return;
+        }
+        log.debug("Evaluating event-based rules for record {}", () -> record.getDocument().getPathAsString());
         if (record.isRetentionExpired()) {
             // retention expired, nothing to do
+            log.debug("Evaluating event-based found retention expired");
             proceedRetentionExpired(record, session);
             return;
 
         }
-        for (String event : events) {
-            if (event.equals(record.getStartingPointEvent())) {
-                ELActionContext actionContext = initActionContext(record.getDocument(), session);
-                String expression = record.getStartingPointExpression();
-                Boolean startNow = evaluateConditionExpression(actionContext, record.getStartingPointExpression());
-                if (startNow) {
-                    session.setRetainUntil(record.getDocument().getRef(), record.getRetainUntilDateFromNow());
-                } else {
-                    log.debug("The '{}' expression evaluated to false", expression);
-                }
-                break;
+        String startingPointEvent = record.getStartingPointEvent();
+        if (StringUtils.isBlank(startingPointEvent)) {
+            log.warn("Evaluating event-based rules  on record {} found no event specified",
+                    () -> record.getDocument().getPathAsString());
+            return;
+        }
+        if (events.contains(startingPointEvent)) {
+            ELActionContext actionContext = initActionContext(record.getDocument(), session);
+            String expression = record.getStartingPointExpression();
+            Boolean startNow = evaluateConditionExpression(actionContext, expression);
+            if (startNow) {
+                session.setRetainUntil(record.getDocument().getRef(), record.getRetainUntilDateFromNow());
+                log.debug("Evaluating event-based rules: expression {} matched on event {}", startingPointEvent);
+            } else {
+                log.debug("Evaluating event-based rules: expression {} did not match on event {}", expression,
+                        startingPointEvent);
             }
         }
     }

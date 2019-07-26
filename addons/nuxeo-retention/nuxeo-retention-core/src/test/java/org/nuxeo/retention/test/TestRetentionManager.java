@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Calendar;
 
 import javax.inject.Inject;
 
@@ -66,19 +67,19 @@ public class TestRetentionManager extends RetentionTestCase {
     @Test
     public void test1DayManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 0L, 0L, 1L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, null, 0L, 0L, 1L, 0L, null, null), 1_000);
     }
 
     @Test
     public void test1MonthManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 0L, 1L, 0L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, null, 0L, 1L, 0L, 0L, null, null), 1_000);
     }
 
     @Test
     public void test1YearManualImmediateRuleRunningRetention() throws InterruptedException {
         assertStillUnderRetentionAfter(file, createRuleWithActions(RetentionRule.ApplicationPolicy.MANUAL,
-                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, 1L, 0L, 0L, 0L, null, null), 1_000);
+                RetentionRule.StartingPointPolicy.IMMEDIATE, null, null, null, null, 1L, 0L, 0L, 0L, null, null), 1_000);
     }
 
     @Test
@@ -157,5 +158,47 @@ public class TestRetentionManager extends RetentionTestCase {
         // it has no retention anymore
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
         assertTrue(record.isRetentionExpired());
+    }
+
+    @Test
+    public void testManualMetadataBasedRule() throws InterruptedException {
+        RetentionRule testRule = createManualMetadataBasedRuleMillis("dc:expired", 1000L);
+        Calendar haldSecond = Calendar.getInstance();
+        haldSecond.add(Calendar.MILLISECOND, 500);
+        file.setPropertyValue("dc:expired", haldSecond);
+        file = session.saveDocument(file);
+
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        awaitRetentionExpiration(1000L);
+
+        Record record = file.getAdapter(Record.class);
+        assertFalse(record.isRetainUntilInderterminate());
+        assertFalse(record.isRetentionExpired());
+        assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
+
+        awaitRetentionExpiration(1000L);
+
+        file = session.getDocument(file.getRef());
+        record = file.getAdapter(Record.class);
+
+        // it has no retention anymore
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+        assertTrue(record.isRetentionExpired());
+    }
+
+    @Test
+    public void testManualPastMetadataBasedRule() throws InterruptedException {
+        RetentionRule testRule = createManualMetadataBasedRuleMillis("dc:expired", 500L);
+        Calendar haldSecond = Calendar.getInstance();
+        haldSecond.add(Calendar.MILLISECOND, -1000);
+        file.setPropertyValue("dc:expired", haldSecond);
+        file = session.saveDocument(file);
+
+        file = service.attachRule(file, testRule, session);
+        assertTrue(file.isRecord());
+        assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
     }
 }

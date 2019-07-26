@@ -20,6 +20,7 @@ package org.nuxeo.retention.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 
@@ -44,7 +45,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class })
-@Deploy("org.nuxeo.retention.core")
+@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-core-types.xml")
+@Deploy("org.nuxeo.retention.core:OSGI-INF/retention-adapters.xml")
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
 public class TestRetentionAdapters {
 
@@ -52,7 +54,7 @@ public class TestRetentionAdapters {
     protected CoreSession session;
 
     @Test
-    public void testRecordAdapter() {
+    public void testRecordAdapterRetainDate() {
         DocumentModel file = session.createDocumentModel("/", "File", "File");
         file = session.createDocument(file);
         file.addFacet(RetentionConstants.RECORD_FACET);
@@ -86,6 +88,57 @@ public class TestRetentionAdapters {
 
         assertFalse(record.isRetainUntilInderterminate());
         assertFalse(record.isRetentionExpired());
+    }
+
+    @Test
+    public void testRecordAdapterSartingPointPolicy() {
+        DocumentModel file = session.createDocumentModel("/", "File", "File");
+        file = session.createDocument(file);
+        file.addFacet(RetentionConstants.RECORD_FACET);
+        file = session.saveDocument(file);
+
+        Record record = file.getAdapter(Record.class);
+
+        record.setStartingPointPolicy(Record.StartingPointPolicy.IMMEDIATE);
+        assertTrue(record.isImmediate());
+        assertFalse(record.isAfterDely());
+        assertFalse(record.isEventBased());
+        assertFalse(record.isMetadataBased());
+
+        record.setStartingPointPolicy(Record.StartingPointPolicy.AFTER_DELAY);
+        assertFalse(record.isImmediate());
+        assertTrue(record.isAfterDely());
+        assertFalse(record.isEventBased());
+        assertFalse(record.isMetadataBased());
+
+        record.setStartingPointPolicy(Record.StartingPointPolicy.EVENT_BASED);
+        assertFalse(record.isImmediate());
+        assertFalse(record.isAfterDely());
+        assertTrue(record.isEventBased());
+        assertFalse(record.isMetadataBased());
+
+        record.setStartingPointPolicy(Record.StartingPointPolicy.METADATA_BASED);
+        assertFalse(record.isImmediate());
+        assertFalse(record.isAfterDely());
+        assertFalse(record.isEventBased());
+        assertTrue(record.isMetadataBased());
+    }
+
+    @Test
+    public void testMetadataXPathValidity() {
+        DocumentModel file = session.createDocumentModel("/", "File", "File");
+        file = session.createDocument(file);
+        file.addFacet(RetentionConstants.RECORD_FACET);
+        file = session.saveDocument(file);
+
+        Record record = file.getAdapter(Record.class);
+
+        try {
+            record.setMetadataXpath("dc:title");
+            fail("Metatada xpath should be of type Date");
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
     }
 
 }

@@ -66,7 +66,7 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
 
         Map<String, Boolean> documentModifiedIgnored = new HashMap<String, Boolean>();
         for (Event event : events) {
-            log.debug("Proceeding event " + event.getName());
+            log.trace("Proceeding event " + event.getName());
             DocumentEventContext docEventCtx = (DocumentEventContext) event.getContext();
             DocumentModel doc = docEventCtx.getSourceDocument();
             String docId = doc.getId();
@@ -83,8 +83,12 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
             }
 
             Record record = doc.getAdapter(Record.class);
+            if (!record.isEventBased()) {
+                log.trace("Record {} is not event-based", () -> record.getDocument().getPathAsString());
+            }
             if (record.isRetentionExpired()) {
                 retentionManager.proceedRetentionExpired(record, event.getContext().getCoreSession());
+                // XXX should we check if the record should be under retention again?
                 continue;
             }
 
