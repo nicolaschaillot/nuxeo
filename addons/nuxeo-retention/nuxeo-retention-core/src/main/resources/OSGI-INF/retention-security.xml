@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.retention.security">
+
+  <require>org.nuxeo.ecm.core.security.defaultPermissions</require>
+
+  <extension target="org.nuxeo.ecm.core.security.SecurityService"
+    point="permissions">
+
+    <permission name="ManageRecord">
+      <include>ReadWrite</include>
+      <include>MakeRecord</include>
+      <include>SetRetention</include>
+      <include>ManageLegalHold</include>
+    </permission>
+
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.security.SecurityService"
+    point="permissionsVisibility">
+
+    <visibility>
+      <item show="true" order="20">ManageRecord</item>
+    </visibility>
+
+  </extension>
+
+</component>
