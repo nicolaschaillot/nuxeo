@@ -49,12 +49,13 @@ limitations under the License.
     <nuxeo-card heading="[[i18n('retention.rule.label.applicationPolicy.heading')]]">
       <nuxeo-select id="applicationPolicyDropdown" selected="{{document.properties.retention_rule:applicationPolicy}}"
         attr-for-selected="key"
+        role="widget"
         placeholder="[[i18n('retention.rule.label.applicationPolicy.placehodler')]]"
         label="[[i18n('retention.rule.label.applicationPolicy.description')]]" required>
         <paper-item key="auto" disabled>[[i18n('retention.rule.label.applicationPolicy.auto')]]</paper-item>
         <paper-item key="manual">[[i18n('retention.rule.label.applicationPolicy.manual')]]</paper-item>
       </nuxeo-select>
-      <dom-if if="[[_isAuto(document)]]">
+      <dom-if if="[[_isAuto(document.properties.retention_rule:applicationPolicy)]]">
         <template>
           <nuxeo-input role="widget"
                        label="[[i18n('retention.rule.label.applicationPolicy.auto.description')]]"
@@ -65,9 +66,17 @@ limitations under the License.
           </nuxeo-input>
         </template>
       </dom-if>
-      <dom-if if="[[_isManual(document)]]">
+      <dom-if if="[[_isManual(document.properties.retention_rule:applicationPolicy)]]">
         <template>
           [[i18n('retention.rule.label.applicationPolicy.manual.description')]]
+          <nuxeo-selectivity data="[[docTypes]]"
+             min-chars="0"
+             role="widget"
+             multiple
+             label="[[i18n('retention.rule.label.applicationPolicy.docTypes')]]"
+             placeholder="[[i18n('retention.rule.label.applicationPolicy.docTypes.placeholder')]]"
+             value="{{document.properties.retention_rule:docTypes}}">
+          </nuxeo-selectivity>
         </template>
       </dom-if>
     </nuxeo-card>
@@ -75,12 +84,13 @@ limitations under the License.
     <nuxeo-card heading="[[i18n('retention.rule.label.startPolicy.heading')]]">
       <nuxeo-select id="startPolicyDropdown" selected="{{document.properties.retention_def:startingPointPolicy}}"
         attr-for-selected="key"
+        role="widget"
         placeholder="[[i18n('retention.rule.label.startPolicy.placehodler')]]"
         label="[[i18n('retention.rule.label.startPolicy.description')]]" required>
         <paper-item key="immediate">[[i18n('retention.rule.label.startPolicy.immediate')]]</paper-item>
         <paper-item key="after_delay" disabled>[[i18n('retention.rule.label.startPolicy.after_delay')]]</paper-item>
         <paper-item key="event_based">[[i18n('retention.rule.label.startPolicy.event_based')]]</paper-item>
-        <paper-item key="metadata_based" disabled>[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
+        <paper-item key="metadata_based">[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
       </nuxeo-select>
       <dom-if if="[[_isImmediate(document.properties.retention_def:startingPointPolicy)]]">
         <template>
@@ -116,6 +126,14 @@ limitations under the License.
       <dom-if if="[[_isMetadataBased(document.properties.retention_def:startingPointPolicy)]]">
         <template>
           [[i18n('retention.rule.label.startPolicy.metadataBased.description')]]
+          <nuxeo-selectivity data="[[dateFields]]"
+             min-chars="0"
+             role="widget"
+             required
+             label="[[i18n('retention.rule.label.startPolicy.metadataBased.xpath')]]"
+             placeholder="[[i18n('retention.rule.label.startPolicy.metadataBased.xpath.placeholder')]]"
+             value="{{document.properties.retention_def:metadataXPath}}">
+          </nuxeo-selectivity>
         </template>
       </dom-if>
     </nuxeo-card>
@@ -180,6 +198,11 @@ limitations under the License.
          * @doctype retentionrule
          */
         document: Object,
+      },
+
+      validate: function() {
+        // TODO validate metadataXPath against doc type when needed
+        return true;
       }
 
     });

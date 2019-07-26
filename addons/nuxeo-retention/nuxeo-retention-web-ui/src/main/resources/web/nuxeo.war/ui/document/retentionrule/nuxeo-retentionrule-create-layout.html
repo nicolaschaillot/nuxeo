@@ -73,7 +73,6 @@ limitations under the License.
              min-chars="0"
              role="widget"
              multiple
-             required
              label="[[i18n('retention.rule.label.applicationPolicy.docTypes')]]"
              placeholder="[[i18n('retention.rule.label.applicationPolicy.docTypes.placeholder')]]"
              value="{{document.properties.retention_rule:docTypes}}">
@@ -91,7 +90,7 @@ limitations under the License.
         <paper-item key="immediate">[[i18n('retention.rule.label.startPolicy.immediate')]]</paper-item>
         <paper-item key="after_delay" disabled>[[i18n('retention.rule.label.startPolicy.after_delay')]]</paper-item>
         <paper-item key="event_based">[[i18n('retention.rule.label.startPolicy.event_based')]]</paper-item>
-        <paper-item key="metadata_based" disabled>[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
+        <paper-item key="metadata_based">[[i18n('retention.rule.label.startPolicy.metadata_based')]]</paper-item>
       </nuxeo-select>
       <dom-if if="[[_isImmediate(document.properties.retention_def:startingPointPolicy)]]">
         <template>
@@ -127,6 +126,14 @@ limitations under the License.
       <dom-if if="[[_isMetadataBased(document.properties.retention_def:startingPointPolicy)]]">
         <template>
           [[i18n('retention.rule.label.startPolicy.metadataBased.description')]]
+          <nuxeo-selectivity data="[[dateFields]]"
+             min-chars="0"
+             role="widget"
+             required
+             label="[[i18n('retention.rule.label.startPolicy.metadataBased.xpath')]]"
+             placeholder="[[i18n('retention.rule.label.startPolicy.metadataBased.xpath.placeholder')]]"
+             value="{{document.properties.retention_def:metadataXPath}}">
+          </nuxeo-selectivity>
         </template>
       </dom-if>
     </nuxeo-card>
@@ -191,6 +198,11 @@ limitations under the License.
          * @doctype retentionrule
          */
         document: Object,
+      },
+
+      validate: function() {
+        // TODO validate metadataXPath against doc type when needed
+        return true;
       }
 
     });

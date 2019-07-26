@@ -36,6 +36,12 @@
           [[_computeApplicationPolicyLabel(document)]]
         </nuxeo-tag>
       </div>
+      <div role="widget" hidden$="[[!_isManual(document)]]">
+        <label>[[i18n('retention.rule.label.applicationPolicy.manual.description')]]</label>
+        <nuxeo-tag>
+          [[document.properties.retention_rule:docTypes]]
+        </nuxeo-tag>
+      </div>
       <div role="widget" hidden$="[[!_isAuto(document)]]">
         <label>[[i18n('retention.rule.label.applicationPolicy.auto.description.short')]]</label>
         <nuxeo-tag>
@@ -61,6 +67,11 @@
         </nuxeo-directory-suggestion>
         <nuxeo-tag>
           [[document.properties.retention_def:startingPointExpression]]
+        </nuxeo-tag>
+      </div>
+      <div role="widget" hidden$="[[!_isMetadataBased(document)]]">
+        <nuxeo-tag>
+          [[document.properties.retention_def:metadataXPath]]
         </nuxeo-tag>
       </div>
     </nuxeo-card>
