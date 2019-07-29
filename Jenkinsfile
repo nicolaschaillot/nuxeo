@@ -115,6 +115,29 @@ pipeline {
         }
       }
     }
+    stage('Deploy Maven artifacts') {
+      steps {
+        setGitHubBuildStatus('platform/deploy', 'Deploy Maven artifacts', 'PENDING')
+        container('maven') {
+          echo """
+          ----------------------------------------
+          Deploy Maven artifacts
+          ----------------------------------------"""
+          withEnv(["MAVEN_OPTS=$MAVEN_OPTS -Xms512m -Xmx3072m"]) {
+            echo "MAVEN_OPTS=$MAVEN_OPTS"
+            sh 'mvn -B -T0.8C -Pdistrib -DskipTests deploy'
+          }
+        }
+      }
+      post {
+        success {
+          setGitHubBuildStatus('platform/deploy', 'Deploy Maven artifacts', 'SUCCESS')
+        }
+        failure {
+          setGitHubBuildStatus('platform/deploy', 'Deploy Maven artifacts', 'FAILURE')
+        }
+      }
+    }
     stage('Build and deploy Docker image') {
       steps {
         setGitHubBuildStatus('platform/docker', 'Build and deploy Docker image', 'PENDING')
