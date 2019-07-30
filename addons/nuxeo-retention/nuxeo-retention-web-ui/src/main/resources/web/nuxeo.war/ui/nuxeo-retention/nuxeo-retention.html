@@ -59,7 +59,9 @@ limitations under the License.
 
 <nuxeo-slot-content name="attachRetentionRuleDocumentAction" slot="DOCUMENT_ACTIONS" order="78">
   <template>
-    <nuxeo-filter user="[[user]]" permissions="MakeRecord,SetRetention">
+    <nuxeo-filter user="[[user]]" document="[[document]]"  expression="!document.isRecord
+                                                                    && this.hasPermission(document, 'MakeRecord')
+                                                                    && this.hasPermission(document, 'SetRetention')">
       <template>
         <nuxeo-attach-rule-button document="[[document]]"></nuxeo-attach-rule-button>
       </template>

@@ -84,7 +84,7 @@ limitations under the License.
       this.typeFetcher.path = 'config/types';
       this.typeFetcher.get().then(function(res) {
         var schemas = new Set();
-        this.docTypes = [];
+        var types = [];
         if (res && res.doctypes) {
           for (var type in res.doctypes) {
             if (
@@ -93,7 +93,7 @@ limitations under the License.
              res.doctypes[type].facets.indexOf('HiddenInNavigation') === -1 &&
              res.doctypes[type].facets.indexOf('SystemDocument') === -1
             ) {
-              this.push('docTypes', {
+              types.push({
                 id: type,
                 text: type,
               });
@@ -102,6 +102,7 @@ limitations under the License.
               });
             }
           }
+          this.set('docTypes', types);
           this._fetchDateFields(schemas);
         }
       }.bind(this));

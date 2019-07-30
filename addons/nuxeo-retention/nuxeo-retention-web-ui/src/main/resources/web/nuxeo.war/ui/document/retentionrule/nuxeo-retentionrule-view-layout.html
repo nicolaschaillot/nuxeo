@@ -95,15 +95,6 @@
 
     <nuxeo-card heading="[[i18n('retention.rule.label.actions.heading')]]">
       <div class="layout flex">
-        <nuxeo-directory-suggestion
-           role="widget"
-           value="{{document.properties.retention_def:beginActions}}"
-           label="[[i18n('retention.rule.label.beginactions.description')]]"
-           multiple="true"
-           dbl10n
-           directory-name="RetentionBegin"
-           readonly>
-         </nuxeo-directory-suggestion>
          <nuxeo-directory-suggestion
             role="widget"
             value="{{document.properties.retention_def:endActions}}"
