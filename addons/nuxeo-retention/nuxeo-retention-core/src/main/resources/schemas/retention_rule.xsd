@@ -7,7 +7,7 @@
 
   <xs:include schemaLocation="base.xsd" />
 
-  <xs:element name="applicationPolicy" nillable="false" nxsv:nillable="false">
+  <xs:element name="applicationPolicy" nillable="false" nxsv:nillable="false" default="manual">
     <xs:simpleType>
       <xs:restriction base="xs:string">
         <xs:enumeration value="auto" />

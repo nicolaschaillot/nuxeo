@@ -85,20 +85,19 @@ public class TestRetentionManager extends RetentionTestCase {
     @Test
     public void testManualImmediateRuleWithActions() throws InterruptedException {
         RetentionRule testRule = createImmediateRuleMillis(RetentionRule.ApplicationPolicy.MANUAL, 100L,
-                Arrays.asList("Document.Lock"), Arrays.asList("Document.Unlock"));
+                null, Arrays.asList("Document.Trash"));
 
         file = service.attachRule(file, testRule, session);
         assertTrue(session.isRecord(file.getRef()));
         assertTrue(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertTrue(file.isLocked());
 
         awaitRetentionExpiration(1000L);
 
         file = session.getDocument(file.getRef());
 
-        // it has no retention anymore
+        // it has no retention anymore and trashed
         assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
-        assertFalse(file.isLocked());
+        assertTrue(file.isTrashed());
     }
 
     @Test

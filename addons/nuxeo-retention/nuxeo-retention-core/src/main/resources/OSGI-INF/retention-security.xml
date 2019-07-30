@@ -19,7 +19,7 @@
     point="permissionsVisibility">
 
     <visibility>
-      <item show="true" order="20">ManageRecord</item>
+      <item show="true" order="70">ManageRecord</item>
     </visibility>
 
   </extension>
