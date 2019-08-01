@@ -202,10 +202,9 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     }
 
     protected ELActionContext initActionContext(DocumentModel doc, CoreSession session) {
-        // handles only filters that can be resolved in this context
         ELActionContext ctx = new ELActionContext(new ExpressionContext(), new ExpressionFactoryImpl());
-        ctx.setDocumentManager(session);
         ctx.setCurrentPrincipal(session.getPrincipal());
+        doc.detach(true);
         ctx.setCurrentDocument(doc);
         return ctx;
     }
