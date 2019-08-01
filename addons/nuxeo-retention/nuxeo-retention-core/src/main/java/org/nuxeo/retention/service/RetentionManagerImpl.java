@@ -120,9 +120,8 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
         document.addFacet(RetentionConstants.RECORD_FACET);
         Record record = document.getAdapter(Record.class);
-        rule.copyRetentionInfo(record);
+        record.setRule(rule, session);
         executeRuleBeginActions(record, session);
-        record.save(session);
         session.setRetainUntil(document.getRef(), retainUntil);
         return session.getDocument(document.getRef());
     }
@@ -137,12 +136,17 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     }
 
     public void executeRuleBeginActions(Record record, CoreSession session) {
-        log.debug("Processing begin actions on {}", () -> record.getDocument().getPath());
-        executeRuleActions(record.getDocument(), record.getBeginActions(), session);
+        RetentionRule rule = record.getRule(session);
+        if (rule != null) {
+            executeRuleActions(record.getDocument(), rule.getBeginActions(), session);
+        }
     }
 
     public void executeRuleEndActions(Record record, CoreSession session) {
-        executeRuleActions(record.getDocument(), record.getEndActions(), session);
+        RetentionRule rule = record.getRule(session);
+        if (rule != null) {
+            executeRuleActions(record.getDocument(), rule.getEndActions(), session);
+        }
     }
 
     protected void executeRuleActions(DocumentModel doc, List<String> actionIds, CoreSession session) {
@@ -223,7 +227,11 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (record == null) {
             return; // nothing to do
         }
-        if (!record.isEventBased()) {
+        RetentionRule rule = record.getRule(session);
+        if (rule == null) {
+            return; // nothing to do
+        }
+        if (!rule.isEventBased()) {
             log.trace("Record is not event-based");
             return;
         }
@@ -235,7 +243,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             return;
 
         }
-        String startingPointEvent = record.getStartingPointEvent();
+        String startingPointEvent = rule.getStartingPointEvent();
         if (StringUtils.isBlank(startingPointEvent)) {
             log.warn("Evaluating event-based rules  on record {} found no event specified",
                     () -> record.getDocument().getPathAsString());
@@ -243,10 +251,10 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         }
         if (events.contains(startingPointEvent)) {
             ELActionContext actionContext = initActionContext(record.getDocument(), session);
-            String expression = record.getStartingPointExpression();
+            String expression = rule.getStartingPointExpression();
             Boolean startNow = evaluateConditionExpression(actionContext, expression);
             if (startNow) {
-                session.setRetainUntil(record.getDocument().getRef(), record.getRetainUntilDateFromNow());
+                session.setRetainUntil(record.getDocument().getRef(), rule.getRetainUntilDateFromNow());
                 log.debug("Evaluating event-based rules: expression {} matched on event {}", startingPointEvent);
             } else {
                 log.debug("Evaluating event-based rules: expression {} did not match on event {}", expression,

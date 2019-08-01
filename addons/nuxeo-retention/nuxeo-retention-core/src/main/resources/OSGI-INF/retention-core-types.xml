@@ -8,6 +8,7 @@
       prefix="retention_rule" />
     <schema name="retention_definition" src="schemas/retention_definition.xsd"
       prefix="retention_def" />
+    <schema name="record" src="schemas/record.xsd" prefix="record" />
     <schema name="retention_search" src="schemas/retention_search.xsd"
       prefix="ret_search" />
   </extension>
@@ -25,7 +26,7 @@
     </facet>
 
     <facet name="Record">
-      <schema name="retention_definition" />
+      <schema name="record" />
     </facet>
 
     <doctype name="RetentionRule" extends="Document">

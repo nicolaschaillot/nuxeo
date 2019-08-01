@@ -72,4 +72,6 @@ public class RetentionConstants {
 
     public static final String METADATA_XPATH_PROP = "retention_def:metadataXPath";
 
+    public static final String RECORD_RULE_IDS_PROP = "record:ruleIds";
+
 }

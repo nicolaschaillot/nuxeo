@@ -33,6 +33,7 @@ import org.nuxeo.ecm.core.event.PostCommitFilteringEventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
+import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.retention.service.RetentionManager;
 import org.nuxeo.runtime.api.Framework;
 
@@ -81,9 +82,13 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
             if (doc == null || !doc.hasFacet(RetentionConstants.RECORD_FACET)) {
                 continue;
             }
-
             Record record = doc.getAdapter(Record.class);
-            if (!record.isEventBased()) {
+            RetentionRule rule = record.getRule(docEventCtx.getCoreSession());
+            if (rule == null) {
+                continue;
+            }
+
+            if (!rule.isEventBased()) {
                 log.trace("Record {} is not event-based", () -> record.getDocument().getPathAsString());
             }
             if (record.isRetentionExpired()) {

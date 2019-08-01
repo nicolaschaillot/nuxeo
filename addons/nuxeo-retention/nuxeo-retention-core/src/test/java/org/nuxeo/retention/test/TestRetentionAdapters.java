@@ -36,6 +36,7 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.retention.RetentionConstants;
 import org.nuxeo.retention.adapters.Record;
+import org.nuxeo.retention.adapters.RetentionRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -91,50 +92,57 @@ public class TestRetentionAdapters {
     }
 
     @Test
-    public void testRecordAdapterSartingPointPolicy() {
-        DocumentModel file = session.createDocumentModel("/", "File", "File");
-        file = session.createDocument(file);
-        file.addFacet(RetentionConstants.RECORD_FACET);
-        file = session.saveDocument(file);
+    public void testRecordAdapterPolicy() {
+        DocumentModel ruleDoc = session.createDocumentModel("/", "RetentionRule", "RetentionRule");
+        RetentionRule rule = ruleDoc.getAdapter(RetentionRule.class);
+        rule.setStartingPointPolicy(RetentionRule.StartingPointPolicy.IMMEDIATE);
+        rule.setApplicationPolicy(RetentionRule.ApplicationPolicy.AUTO);
+        ruleDoc = session.createDocument(ruleDoc);
+        ruleDoc = session.saveDocument(ruleDoc);
+        rule = ruleDoc.getAdapter(RetentionRule.class);
 
-        Record record = file.getAdapter(Record.class);
+        assertTrue(rule.isAuto());
+        assertFalse(rule.isManual());
+        rule.setApplicationPolicy(RetentionRule.ApplicationPolicy.MANUAL);
+        assertFalse(rule.isAuto());
+        assertTrue(rule.isManual());
 
-        record.setStartingPointPolicy(Record.StartingPointPolicy.IMMEDIATE);
-        assertTrue(record.isImmediate());
-        assertFalse(record.isAfterDely());
-        assertFalse(record.isEventBased());
-        assertFalse(record.isMetadataBased());
+        assertTrue(rule.isImmediate());
+        assertFalse(rule.isAfterDely());
+        assertFalse(rule.isEventBased());
+        assertFalse(rule.isMetadataBased());
 
-        record.setStartingPointPolicy(Record.StartingPointPolicy.AFTER_DELAY);
-        assertFalse(record.isImmediate());
-        assertTrue(record.isAfterDely());
-        assertFalse(record.isEventBased());
-        assertFalse(record.isMetadataBased());
+        rule.setStartingPointPolicy(RetentionRule.StartingPointPolicy.AFTER_DELAY);
+        assertFalse(rule.isImmediate());
+        assertTrue(rule.isAfterDely());
+        assertFalse(rule.isEventBased());
+        assertFalse(rule.isMetadataBased());
 
-        record.setStartingPointPolicy(Record.StartingPointPolicy.EVENT_BASED);
-        assertFalse(record.isImmediate());
-        assertFalse(record.isAfterDely());
-        assertTrue(record.isEventBased());
-        assertFalse(record.isMetadataBased());
+        rule.setStartingPointPolicy(RetentionRule.StartingPointPolicy.EVENT_BASED);
+        assertFalse(rule.isImmediate());
+        assertFalse(rule.isAfterDely());
+        assertTrue(rule.isEventBased());
+        assertFalse(rule.isMetadataBased());
 
-        record.setStartingPointPolicy(Record.StartingPointPolicy.METADATA_BASED);
-        assertFalse(record.isImmediate());
-        assertFalse(record.isAfterDely());
-        assertFalse(record.isEventBased());
-        assertTrue(record.isMetadataBased());
+        rule.setStartingPointPolicy(RetentionRule.StartingPointPolicy.METADATA_BASED);
+        assertFalse(rule.isImmediate());
+        assertFalse(rule.isAfterDely());
+        assertFalse(rule.isEventBased());
+        assertTrue(rule.isMetadataBased());
     }
 
     @Test
     public void testMetadataXPathValidity() {
-        DocumentModel file = session.createDocumentModel("/", "File", "File");
-        file = session.createDocument(file);
-        file.addFacet(RetentionConstants.RECORD_FACET);
-        file = session.saveDocument(file);
-
-        Record record = file.getAdapter(Record.class);
+        DocumentModel ruleDoc = session.createDocumentModel("/", "RetentionRule", "RetentionRule");
+        RetentionRule rule = ruleDoc.getAdapter(RetentionRule.class);
+        rule.setStartingPointPolicy(RetentionRule.StartingPointPolicy.IMMEDIATE);
+        rule.setApplicationPolicy(RetentionRule.ApplicationPolicy.MANUAL);
+        ruleDoc = session.createDocument(ruleDoc);
+        ruleDoc = session.saveDocument(ruleDoc);
+        rule = ruleDoc.getAdapter(RetentionRule.class);
 
         try {
-            record.setMetadataXpath("dc:title");
+            rule.setMetadataXpath("dc:title");
             fail("Metatada xpath should be of type Date");
         } catch (IllegalArgumentException e) {
             // expected
