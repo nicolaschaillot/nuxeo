@@ -46,6 +46,12 @@
             <property name="size">10</property>
           </properties>
         </aggregate>
+        <aggregate id="rules_agg" type="terms" parameter="record:ruleIds">
+          <field schema="retention_search" name="rules_agg" />
+          <properties>
+            <property name="size">10</property>
+          </properties>
+        </aggregate>
         <aggregate id="ecm_retain_agg" type="date_range" parameter="ecm:retainUntil">
           <field schema="retention_search" name="ecm_retain_agg" />
           <properties>

@@ -89,3 +89,9 @@ limitations under the License.
    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
+
+<nuxeo-slot-content name="attachRuleSelectionAction" slot="RESULTS_ACTIONS" order="-200">
+  <template>
+    <nuxeo-attach-rule-button provider="[[nxProvider]]"></nuxeo-attach-rule-button>
+  </template>
+</nuxeo-slot-content>

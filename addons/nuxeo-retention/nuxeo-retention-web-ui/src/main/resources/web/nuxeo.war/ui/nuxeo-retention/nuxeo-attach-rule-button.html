@@ -27,11 +27,10 @@ limitations under the License.
       }
     </style>
 
-    <nuxeo-operation id="attachRuleOp" op="Retention.AttachRule"
-      input="[[document]]">
+    <nuxeo-operation id="attachRuleOp" on-poll-start="_onPollStart" on-response="_onResponse">
     </nuxeo-operation>
 
-    <dom-if if="[[_isAvailable(document)]]">
+    <dom-if if="[[_isAvailable(provider, document)]]">
       <template>
         <div class="action" on-click="_toggleDialog">
           <paper-icon-button icon="[[icon]]" noink></paper-icon-button>
@@ -57,7 +56,7 @@ limitations under the License.
       </paper-dialog-scrollable>
       <div class="buttons">
         <paper-button dialog-dismiss>[[i18n('command.close')]]</paper-button>
-        <paper-button class="primary" on-tap="_attach" disabled$="[[!_isValid(document, rule)]]">[[i18n('retention.rule.attachButton.label')]]</paper-button>
+        <paper-button class="primary" on-tap="_attach" disabled$="[[!_isValid(provider, document, rule)]]">[[i18n('retention.rule.attachButton.label')]]</paper-button>
       </div>
     </nuxeo-dialog>
 
@@ -104,10 +103,17 @@ limitations under the License.
         },
 
         rule: Object,
+
+        /**
+         * Page provider from which results are to be attached.
+         */
+        provider: {
+          type: Object,
+        },
       },
 
-      _isAvailable: function(document) {
-        return this.canSetRetention(document);
+      _isAvailable: function() {
+        return this.provider || this.canSetRetention(this.document);
       },
 
       _computeLabel: function() {
@@ -120,21 +126,56 @@ limitations under the License.
       },
 
       _attach: function() {
-        this.$.attachRuleOp.params = { 'rule': this.rule.uid };
-        this.$.attachRuleOp.execute().then(function() {
-          this.dispatchEvent(new CustomEvent('document-updated', {
-            composed: true,
-            bubbles: true,
-          }));
-          this._toggleDialog();
-        }.bind(this));
+        if (this.provider) {
+          this.$.attachRuleOp.op = 'Bulk.RunAction';
+          this.$.attachRuleOp.input = this.provider;
+          this.$.attachRuleOp.async = true;
+          this.$.attachRuleOp.params = {
+            action: 'attachRetentionRule',
+            parameters: JSON.stringify({ruleId: this.rule.uid}),
+          };
+          this.$.attachRuleOp.execute().then(function() {
+            this._toggleDialog();
+          }.bind(this));
+        } else {
+          this.$.attachRuleOp.op = 'Retention.AttachRule';
+          this.$.attachRuleOp.input = this.document;
+          this.$.attachRuleOp.async = false;
+          this.$.attachRuleOp.params = { 'rule': this.rule.uid };
+          this.$.attachRuleOp.execute().then(function() {
+            this.dispatchEvent(new CustomEvent('document-updated', {
+              composed: true,
+              bubbles: true,
+            }));
+            this._toggleDialog();
+          }.bind(this));
+        }
+      },
+
+      _onPollStart: function() {
+        this.dispatchEvent(new CustomEvent('notify', {
+          composed: true,
+          bubbles: true,
+          detail: { message: this.i18n('retention.rule.attachButton.bulk.poll') },
+        }));
+      },
+
+      _onResponse: function() {
+        this.dispatchEvent(new CustomEvent('notify', {
+          composed: true,
+          bubbles: true,
+          detail: { message: this.i18n('retention.rule.attachButton.attached') },
+        }));
       },
 
       _isValid: function() {
-        return this.document && this.rule;
+        return (this.document || this.provider) && this.rule;
       },
 
       _filterRules: function(rule) {
+        if (this.provider) {
+          return true;
+        }
         var acceptedTypes = rule.properties['retention_rule:docTypes'];
         if (!acceptedTypes || acceptedTypes.length === 0) {
           return true;

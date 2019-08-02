@@ -59,6 +59,14 @@ limitations under the License.
       </nuxeo-checkbox-aggregation>
     </div>
 
+    <div role="widget">
+      <label>[[i18n('retention.search.rules')]]</label>
+      <nuxeo-dropdown-aggregation
+        data="[[aggregations.rules_agg]]"
+        value="{{params.ecm_retain_agg}}">
+      </nuxeo-dropdown-aggregation>
+    </div>
+
   </template>
 
   <script>

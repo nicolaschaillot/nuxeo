@@ -60,7 +60,7 @@ public class RetentionConstants {
 
     public static final String STARTING_POINT_EXPRESSION_PROP = "retention_def:startingPointExpression";
 
-    public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-mm-dd hh:MM:ss.SSS");
+    public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
 
     public static final String STARTING_POINT_EVENT_PROP = "retention_def:startingPointEvent";
 

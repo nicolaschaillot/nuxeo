@@ -34,14 +34,15 @@ public interface RetentionManager {
 
     DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session);
 
+    boolean canAttachRule(DocumentModel document, RetentionRule rule, CoreSession session);
+
     void evalRules(Map<String, Set<String>> docsToCheckAndEvents);
 
     void evalRules(Record record, Set<String> events, CoreSession session);
-
-    void proceedRetentionExpired(Record record, CoreSession coreSession);
 
     List<String> getAcceptedEvents();
 
     void invalidate();
 
+    void proceedRetentionExpired(Record record, CoreSession coreSession);
 }

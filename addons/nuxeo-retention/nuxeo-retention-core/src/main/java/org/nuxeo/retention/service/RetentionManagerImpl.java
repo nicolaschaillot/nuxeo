@@ -69,13 +69,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
 
     @Override
     public DocumentModel attachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
-        checkAttachRulePermission(document, session);
-        if (!rule.isEnabled()) {
-            throw new NuxeoException(String.format("Rule is disabled"));
-        }
-        if (!rule.isDocTypeAccepted(document.getType())) {
-            throw new NuxeoException("Rule does not accept this document type");
-        }
+        checkCanAttachRule(document, rule, session);
         session.makeRecord(document.getRef());
         final Calendar retainUntil;
         if (rule.isImmediate()) {
@@ -105,7 +99,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
             } else {
                 retainUntil = rule.getRetainUntilDateFrom(value);
                 Calendar now = Calendar.getInstance();
-                if (now.after(value)) {
+                if (now.after(retainUntil)) {
                     log.info(
                             "Metabased-based rule found past date {} as retention expiration date on {} from {} property. Ignoring...",
                             () -> RetentionConstants.DEFAULT_DATE_FORMAT.format(retainUntil.getTime()),
@@ -126,12 +120,30 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         return session.getDocument(document.getRef());
     }
 
-    private void checkAttachRulePermission(DocumentModel document, CoreSession session) {
+    protected void checkCanAttachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
         NuxeoPrincipal principal = session.getPrincipal();
         if (!principal.isAdministrator() && !principal.isMemberOf(RetentionConstants.RECORD_MANAGER_GROUP_NAME)) {
             if (!session.hasPermission(document.getRef(), SecurityConstants.MAKE_RECORD)
                     || !session.hasPermission(document.getRef(), SecurityConstants.SET_RETENTION))
-                throw new NuxeoException("User is not authorized to attach retention rule", SC_FORBIDDEN);
+            throw new NuxeoException("User is not authorized to attach retention rule", SC_FORBIDDEN);
+        }
+        if (!rule.isEnabled()) {
+            throw new NuxeoException(String.format("Rule is disabled"));
+        }
+        if (!rule.isDocTypeAccepted(document.getType())) {
+            throw new NuxeoException("Rule does not accept this document type");
+        }
+    }
+
+    @Override
+    public boolean canAttachRule(DocumentModel document, RetentionRule rule, CoreSession session) {
+        try {
+            checkCanAttachRule(document, rule, session);
+            return true;
+        } catch (NuxeoException e) {
+            log.info("Cannot attach rule {} on document {}", () -> rule.getDocument().getPathAsString(),
+                    document::getPathAsString);
+            return false;
         }
     }
 
