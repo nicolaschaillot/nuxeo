@@ -47,6 +47,7 @@ pipeline {
     HELM_RELEASE_REDIS = 'redis'
     NAMESPACE_REDIS = "nuxeo-unit-tests-redis-$BRANCH_NAME".toLowerCase()
     SERVICE_REDIS = 'redis-master'
+    REDIS_HOST = "${SERVICE_REDIS}.${NAMESPACE_REDIS}.svc.cluster.local"
     SERVICE_ACCOUNT = 'jenkins'
     ORG = 'nuxeo'
   }
@@ -102,7 +103,7 @@ pipeline {
           ----------------------------------------"""
           withEnv(["MAVEN_OPTS=$MAVEN_OPTS -Xms512m -Xmx3072m"]) {
             echo "MAVEN_OPTS=$MAVEN_OPTS"
-            sh "mvn -B -Dnuxeo.test.redis.host=${SERVICE_REDIS} test"
+            sh "mvn -B -Dnuxeo.test.redis.host=${REDIS_HOST} test"
           }
         }
       }
