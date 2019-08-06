@@ -182,11 +182,21 @@ pipeline {
             """
             // push image to the Jenkins X internal Docker registry
             echo "Pushing Docker image to ${DOCKER_REGISTRY}"
-            sh "TARGET_DOCKER_REGISTRY=${DOCKER_REGISTRY} skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml"
+            sh """
+              envsubst < nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml > nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml~gen
+              skaffold build -p pr -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml~gen
+            """
 
-            // push image to the public Docker registry
-            echo "Pushing Docker image to ${PUBLIC_DOCKER_REGISTRY}"
-            sh "TARGET_DOCKER_REGISTRY=${PUBLIC_DOCKER_REGISTRY} skaffold build -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml"
+            script {
+              if (BRANCH_NAME == 'master') {
+                // push image to the public Docker registry
+                echo "Pushing Docker image to ${PUBLIC_DOCKER_REGISTRY}"
+                sh """
+                  envsubst < nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml > nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml~gen
+                  skaffold build -p master -f nuxeo-distribution/nuxeo-server-tomcat/skaffold.yaml~gen
+                """
+              }
+            }
           }
         }
       }
