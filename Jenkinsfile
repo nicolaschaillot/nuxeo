@@ -38,7 +38,7 @@ String getVersion() {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-java'
+    label 'jenkins-nuxeo-platform-11'
   }
   environment {
     HELM_CHART_REPOSITORY_NAME = 'local-jenkins-x'
