@@ -74,6 +74,26 @@ public class TestContextHelpers {
     }
 
     @Test
+    public void shouldCallHtmlEscape() throws OperationException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("script", "Context.htmlEscape = Fn.htmlEscape(\" cou&cou \");");
+        try (OperationContext ctx = new OperationContext()) {
+            automationService.run(ctx, "RunScript", params);
+            assertEquals(" cou&amp;cou ", ctx.get("htmlEscape"));
+        }
+    }
+
+    @Test
+    public void shouldCallNxqlEscape() throws OperationException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("script", "Context.nxqlEscape = Fn.nxqlEscape(\" \n \");");
+        try (OperationContext ctx = new OperationContext()) {
+            automationService.run(ctx, "RunScript", params);
+            assertEquals(" \\n ", ctx.get("nxqlEscape"));
+        }
+    }
+
+    @Test
     public void shouldUseNewExtension() throws OperationException {
         // Get the new extension
         ContextService contextService = Framework.getService(ContextService.class);
