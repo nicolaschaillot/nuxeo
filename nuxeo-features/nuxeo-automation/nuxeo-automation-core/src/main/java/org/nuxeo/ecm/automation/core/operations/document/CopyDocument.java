@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.automation.core.operations.document;
 
+import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
@@ -25,8 +26,13 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.CoreSession.CopyOption;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.event.CoreEventConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -45,21 +51,28 @@ public class CopyDocument {
     @Param(name = "name", required = false)
     protected String name;
 
+    /**
+     * @since 11.1
+     */
+    @Param(name = CoreEventConstants.RESET_LIFECYCLE, required = false)
+    protected boolean resetLifeCycle;
+
     @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentModel doc) {
         String n = name;
-        if (name == null || name.length() == 0) {
+        if (StringUtils.isEmpty(name)) {
             n = doc.getName();
         }
-        return session.copy(doc.getRef(), target, n);
+        List<CopyOption> options = new ArrayList<>();
+
+        if (resetLifeCycle) {
+            options.add(CopyOption.RESET_LIFE_CYCLE);
+        }
+        return session.copy(doc.getRef(), target, n, options.toArray(CopyOption[]::new));
     }
 
     @OperationMethod(collector = DocumentModelCollector.class)
     public DocumentModel run(DocumentRef ref) {
-        String n = name;
-        if (name == null || name.length() == 0) {
-            n = session.getDocument(ref).getName();
-        }
-        return session.copy(ref, target, n);
+        return run(session.getDocument(ref));
     }
 }
