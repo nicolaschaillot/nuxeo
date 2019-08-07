@@ -18,8 +18,9 @@
  */
 package org.nuxeo.retention;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.retention.adapters.RetentionRule;
 
 /**
  * @since 11.1
@@ -60,7 +61,7 @@ public class RetentionConstants {
 
     public static final String STARTING_POINT_EXPRESSION_PROP = "retention_def:startingPointExpression";
 
-    public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+    public static final FastDateFormat DEFAULT_DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
 
     public static final String STARTING_POINT_EVENT_PROP = "retention_def:startingPointEvent";
 
@@ -73,5 +74,23 @@ public class RetentionConstants {
     public static final String METADATA_XPATH_PROP = "retention_def:metadataXPath";
 
     public static final String RECORD_RULE_IDS_PROP = "record:ruleIds";
+
+    public static final String INPUT_PROPERTY_KEY = "input";
+
+    public static final String ACTIVE_EVENT_BASED_RETENTION_RULES_QUERY = "SELECT * FROM Document" //
+            + " WHERE ecm:mixinType = '" + RETENTION_RULE_FACET + "'" //
+            + " AND ecm:isTrashed = 0" //
+            + " AND ecm:isVersion = 0" //
+            + " AND " + ENABLED_PROP + " = 1" //
+            + " AND " + STARTING_POINT_POLICY_PROP + " = '"
+            + RetentionRule.StartingPointPolicy.EVENT_BASED.name().toLowerCase() + "'";
+
+    public static final String RULE_RECORD_DOCUMENT_QUERY = "SELECT * FROM Document" //
+            + " WHERE ecm:mixinType = '" + RECORD_FACET + "'" //
+            + " AND ecm:isRecord = 1" //
+            + " AND ecm:retainUntil = TIMESTAMP '" + DEFAULT_DATE_FORMAT.format(CoreSession.RETAIN_UNTIL_INDETERMINATE)
+            + "'";
+
+    public static final String EVENT_CATEGORY = "Retention";
 
 }

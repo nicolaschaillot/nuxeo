@@ -38,11 +38,12 @@ public interface RetentionManager {
 
     void evalRules(Map<String, Set<String>> docsToCheckAndEvents);
 
-    void evalRules(Record record, Set<String> events, CoreSession session);
+    void evalExpressionEventBasedRules(Record record, Set<String> events, CoreSession session);
 
     List<String> getAcceptedEvents();
 
     void invalidate();
 
     void proceedRetentionExpired(Record record, CoreSession coreSession);
+
 }

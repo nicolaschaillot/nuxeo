@@ -125,7 +125,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
         if (!principal.isAdministrator() && !principal.isMemberOf(RetentionConstants.RECORD_MANAGER_GROUP_NAME)) {
             if (!session.hasPermission(document.getRef(), SecurityConstants.MAKE_RECORD)
                     || !session.hasPermission(document.getRef(), SecurityConstants.SET_RETENTION))
-            throw new NuxeoException("User is not authorized to attach retention rule", SC_FORBIDDEN);
+                throw new NuxeoException("User is not authorized to attach retention rule", SC_FORBIDDEN);
         }
         if (!rule.isEnabled()) {
             throw new NuxeoException(String.format("Rule is disabled"));
@@ -235,7 +235,7 @@ public class RetentionManagerImpl extends DefaultComponent implements RetentionM
     }
 
     @Override
-    public void evalRules(Record record, Set<String> events, CoreSession session) {
+    public void evalExpressionEventBasedRules(Record record, Set<String> events, CoreSession session) {
         if (record == null) {
             return; // nothing to do
         }

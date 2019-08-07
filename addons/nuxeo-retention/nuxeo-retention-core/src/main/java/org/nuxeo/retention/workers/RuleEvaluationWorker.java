@@ -88,7 +88,7 @@ public class RuleEvaluationWorker extends AbstractWork {
                 log.warn("Document should be impacted by retention but is no longer a Record: {}", string);
                 continue;
             }
-            Framework.getService(RetentionManager.class).evalRules(record, docsToCheckAndEvents.get(string), session);
+            Framework.getService(RetentionManager.class).evalExpressionEventBasedRules(record, docsToCheckAndEvents.get(string), session);
         }
 
     }

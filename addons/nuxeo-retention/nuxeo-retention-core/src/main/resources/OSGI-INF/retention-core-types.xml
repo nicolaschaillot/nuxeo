@@ -41,9 +41,7 @@
     <doctype name="RetentionRules" extends="OrderedFolder">
       <facet name="SuperSpace"/>
       <facet name="HiddenInCreation" />
-      <!--
       <facet name="HiddenInNavigation" />
-       -->
       <facet name="NotCollectionMember" />
       <subtypes>
         <type>RetentionRule</type>

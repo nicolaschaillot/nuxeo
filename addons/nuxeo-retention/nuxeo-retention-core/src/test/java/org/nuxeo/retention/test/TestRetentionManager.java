@@ -118,7 +118,7 @@ public class TestRetentionManager extends RetentionTestCase {
     }
 
     @Test
-    public void testManualDocumentMoveToFolderRule() throws InterruptedException {
+    public void testManualDocumentMovedToFolderRule() throws InterruptedException {
 
         RetentionRule testRule = createManualEventBasedRuleMillis(DocumentEventTypes.DOCUMENT_MOVED,
                 "document.getPathAsString().startsWith('/testFolder')", 1000L);

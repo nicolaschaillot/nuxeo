@@ -40,9 +40,9 @@ import org.nuxeo.runtime.api.Framework;
 /**
  * @since 11.1
  */
-public class RetentionStartingPointListener implements PostCommitFilteringEventListener {
+public class RetentionDocumentEventListener implements PostCommitFilteringEventListener {
 
-    private static final Logger log = LogManager.getLogger(RetentionExpiredListener.class);
+    private static final Logger log = LogManager.getLogger(RetentionDocumentEventListener.class);
 
     @Override
     public boolean acceptEvent(Event event) {
@@ -68,35 +68,38 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
         Map<String, Boolean> documentModifiedIgnored = new HashMap<String, Boolean>();
         for (Event event : events) {
             log.trace("Proceeding event " + event.getName());
-            DocumentEventContext docEventCtx = (DocumentEventContext) event.getContext();
+            EventContext evtCtx = event.getContext();
+            DocumentEventContext docEventCtx = (DocumentEventContext) evtCtx;
             DocumentModel doc = docEventCtx.getSourceDocument();
             String docId = doc.getId();
             if (docEventCtx.getProperties().containsKey(RetentionConstants.RETENTION_CHECKER_LISTENER_IGNORE)
                     && !documentModifiedIgnored.containsKey(docId)) {
-                // ignore only once per document per bundle, the rule can be attached and document later modified into
+                // ignore only once per document per bundle, the rule can be attached and document later modified
+                // into
                 // the same transaction
                 documentModifiedIgnored.put(docId, true);
                 continue;
             }
-
-            if (doc == null || !doc.hasFacet(RetentionConstants.RECORD_FACET)) {
+            if (!doc.hasFacet(RetentionConstants.RECORD_FACET)) {
+                log.trace("Document is not a record", doc::getPathAsString);
                 continue;
             }
             Record record = doc.getAdapter(Record.class);
             RetentionRule rule = record.getRule(docEventCtx.getCoreSession());
             if (rule == null) {
+                log.trace("Record {} does not have rule", doc::getPathAsString);
                 continue;
             }
-
             if (!rule.isEventBased()) {
-                log.trace("Record {} is not event-based", () -> record.getDocument().getPathAsString());
+                log.trace("Rule {} is not event-based", () -> rule.getDocument().getPathAsString());
+                continue;
             }
             if (record.isRetentionExpired()) {
+                log.trace("Record already expired", doc::getPathAsString);
                 retentionManager.proceedRetentionExpired(record, event.getContext().getCoreSession());
                 // XXX should we check if the record should be under retention again?
                 continue;
             }
-
             if (docsToCheckAndEvents.containsKey(docId)) {
                 Set<String> eventsToCheck = docsToCheckAndEvents.get(docId);
                 if (!eventsToCheck.contains(event.getName())) {
@@ -108,13 +111,10 @@ public class RetentionStartingPointListener implements PostCommitFilteringEventL
                 evts.add(event.getName());
                 docsToCheckAndEvents.put(docId, evts);
             }
-
         }
-        if (docsToCheckAndEvents.isEmpty()) {
-            return;
+        if (!docsToCheckAndEvents.isEmpty()) {
+            retentionManager.evalRules(docsToCheckAndEvents);
         }
-
-        retentionManager.evalRules(docsToCheckAndEvents);
 
     }
 

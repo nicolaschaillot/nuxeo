@@ -16,13 +16,15 @@ limitations under the License.
 
 <link rel="import" href="nuxeo-retention-behavior.html">
 <link rel="import" href="nuxeo-retention-rules.html">
+<link rel="import" href="nuxeo-retention-events.html">
+<link rel="import" href="nuxeo-retention-menu.html">
 <link rel="import" href="nuxeo-attach-rule-button.html">
 
 <nuxeo-slot-content name="retentionRulesDrawerItem" slot="DRAWER_ITEMS" order="65">
   <template>
     <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
       <template>
-        <nuxeo-menu-icon name="retentionRules" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
+        <nuxeo-menu-icon name="retention" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
       </template>
     </nuxeo-filter>
   </template>
@@ -31,9 +33,35 @@ limitations under the License.
   <template>
     <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
       <template>
-        <nuxeo-retention-rules name="retentionRules"></nuxeo-retention-rules>
+        <nuxeo-retention-menu name="retention"></nuxeo-retention-menu>
       </template>
     </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="retentionSearch" slot="PAGES">
+  <template>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+        <nuxeo-search-page id="retentionSearch"
+                           name="retentionSearch"
+                           heading="retention.search"
+                           provider="retention_search"
+                           schemas="dublincore,common,retention_def"
+                           search-name="retention"
+                           show-filters opened stop-error-propagation></nuxeo-search-page>
+      </template>
+    </nuxeo-filter>
+  </template>
+</nuxeo-slot-content>
+
+<nuxeo-slot-content name="retentionEvents" slot="PAGES" >
+  <template>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+        <nuxeo-retention-events name="retentionEvents"></nuxeo-retention-events>
+      </template>
+  </nuxeo-filter>
   </template>
 </nuxeo-slot-content>
 
@@ -59,7 +87,7 @@ limitations under the License.
 
 <nuxeo-slot-content name="attachRetentionRuleDocumentAction" slot="DOCUMENT_ACTIONS" order="78">
   <template>
-    <nuxeo-filter user="[[user]]" document="[[document]]"  expression="!document.isRecord
+    <nuxeo-filter user="[[user]]" document="[[document]]"  expression="!this.hasFacet(document, 'Folderish')
                                                                     && this.hasPermission(document, 'MakeRecord')
                                                                     && this.hasPermission(document, 'SetRetention')">
       <template>
@@ -69,29 +97,12 @@ limitations under the License.
   </template>
 </nuxeo-slot-content>
 
-<nuxeo-slot-content name="retentionSearchMenuButton" slot="DRAWER_ITEMS" order="32">
-  <template>
-    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
-      <template>
-        <nuxeo-menu-icon name="retentionSearch" icon="nuxeo:search-retention" label="retention.search"></nuxeo-menu-icon>
-      </template>
-    </nuxeo-filter>
-  </template>
-</nuxeo-slot-content>
-<nuxeo-slot-content name="retentionSearchMenuPage" slot="DRAWER_PAGES">
-  <template>
-    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
-      <template>
-        <nuxeo-search-form name="retentionSearch" search-name="retention" auto
-                           provider="retention_search" schemas="dublincore,common,retention_def">
-        </nuxeo-search-form>
-     </template>
-   </nuxeo-filter>
-  </template>
-</nuxeo-slot-content>
-
 <nuxeo-slot-content name="attachRuleSelectionAction" slot="RESULTS_ACTIONS" order="-200">
   <template>
-    <nuxeo-attach-rule-button provider="[[nxProvider]]"></nuxeo-attach-rule-button>
+    <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
+      <template>
+          <nuxeo-attach-rule-button provider="[[nxProvider]]"></nuxeo-attach-rule-button>
+      </template>
+    </nuxeo-filter>
   </template>
 </nuxeo-slot-content>

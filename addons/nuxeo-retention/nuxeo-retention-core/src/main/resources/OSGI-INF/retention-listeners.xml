@@ -4,8 +4,11 @@
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
     point="listener">
-    <listener name="retentionEventsBasedStartingPointListener"
-      class="org.nuxeo.retention.listeners.RetentionStartingPointListener">
+    <listener name="retentionDocumentEventListener"
+      class="org.nuxeo.retention.listeners.RetentionDocumentEventListener">
+    </listener>
+    <listener name="retentionBusinessEventListener"
+      class="org.nuxeo.retention.listeners.RetentionBusinessEventListener">
     </listener>
     <listener name="retentionExpiredListener"
       class="org.nuxeo.retention.listeners.RetentionExpiredListener">

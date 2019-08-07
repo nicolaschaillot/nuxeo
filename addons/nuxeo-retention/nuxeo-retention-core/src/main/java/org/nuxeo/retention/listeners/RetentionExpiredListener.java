@@ -64,5 +64,4 @@ public class RetentionExpiredListener implements EventListener {
         retentionManager.proceedRetentionExpired(record, ctx.getCoreSession());
     }
 
-
 }
