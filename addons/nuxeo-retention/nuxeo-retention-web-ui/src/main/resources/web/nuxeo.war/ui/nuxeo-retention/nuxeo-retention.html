@@ -24,7 +24,7 @@ limitations under the License.
   <template>
     <nuxeo-filter user="[[user]]" group="RecordManager,administrators">
       <template>
-        <nuxeo-menu-icon name="retention" icon="nuxeo:retention-rules" label="app.retentionRules"></nuxeo-menu-icon>
+        <nuxeo-menu-icon name="retention" icon="nuxeo:retention-rules" label="app.retention"></nuxeo-menu-icon>
       </template>
     </nuxeo-filter>
   </template>
@@ -70,16 +70,6 @@ limitations under the License.
     <nuxeo-filter user="[[user]]" permissions="MakeRecord,ManageLegalHold">
       <template>
         <nuxeo-hold-toggle-button document="[[document]]"></nuxeo-hold-toggle-button>
-      </template>
-    </nuxeo-filter>
-  </template>
-</nuxeo-slot-content>
-
-<nuxeo-slot-content name="retainDocumentAction" slot="DOCUMENT_ACTIONS" order="77">
-  <template>
-    <nuxeo-filter user="[[user]]" permissions="MakeRecord,SetRetention">
-      <template>
-        <nuxeo-retain-button document="[[document]]"></nuxeo-retain-button>
       </template>
     </nuxeo-filter>
   </template>
