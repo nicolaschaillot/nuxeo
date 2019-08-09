@@ -164,8 +164,8 @@ public class TestPublishRelationsListener {
         assertEquals(1, statements.size());
 
         // no comments where copied
-        List<Statement> comments = relationManager.getGraphByName(COMMENTS_GRAPH_NAME).getStatements(
-                new StatementImpl(null, null, publishedResource));
+        List<Statement> comments = relationManager.getGraphByName(COMMENTS_GRAPH_NAME)
+                                                  .getStatements(new StatementImpl(null, null, publishedResource));
         assertNotNull(comments);
         assertEquals(0, comments.size());
     }
