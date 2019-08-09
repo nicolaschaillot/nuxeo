@@ -42,7 +42,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.comment.api.Comment;
@@ -52,6 +51,7 @@ import org.nuxeo.ecm.platform.comment.api.CommentableDocument;
 import org.nuxeo.ecm.platform.comment.api.Comments;
 import org.nuxeo.ecm.platform.comment.api.exceptions.CommentNotFoundException;
 import org.nuxeo.ecm.platform.comment.service.CommentServiceConfig;
+import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -60,7 +60,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 10.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(PlatformFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.comment.api")
 @Deploy("org.nuxeo.ecm.platform.comment")

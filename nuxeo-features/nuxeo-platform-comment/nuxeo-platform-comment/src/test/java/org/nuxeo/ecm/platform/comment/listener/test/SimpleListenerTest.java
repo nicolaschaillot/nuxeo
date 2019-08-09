@@ -36,24 +36,17 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.event.EventService;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.comment.api.Comment;
 import org.nuxeo.ecm.platform.comment.api.CommentImpl;
 import org.nuxeo.ecm.platform.comment.api.CommentManager;
+import org.nuxeo.ecm.platform.comment.permissions.test.CommentRelationFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.comment.api")
-@Deploy("org.nuxeo.ecm.platform.comment")
-@Deploy("org.nuxeo.ecm.platform.query.api")
+@Features(CommentRelationFeature.class)
 public class SimpleListenerTest {
 
     @Inject
@@ -61,7 +54,6 @@ public class SimpleListenerTest {
 
     @Inject
     protected CommentManager commentManager;
-
 
     protected DocumentModel doCreateADocWithComments() throws Exception {
 
