@@ -10,6 +10,11 @@
       <include>ReadWrite</include>
       <include>MakeRecord</include>
       <include>SetRetention</include>
+    </permission>
+
+    <permission name="ManageLegalHold">
+      <include>ReadWrite</include>
+      <include>MakeRecord</include>
       <include>ManageLegalHold</include>
     </permission>
 
@@ -20,6 +25,7 @@
 
     <visibility>
       <item show="true" order="70">ManageRecord</item>
+      <item show="true" order="71">ManageLegalHold</item>
     </visibility>
 
   </extension>

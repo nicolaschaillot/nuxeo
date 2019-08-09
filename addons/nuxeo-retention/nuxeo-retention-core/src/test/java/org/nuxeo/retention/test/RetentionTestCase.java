@@ -111,7 +111,7 @@ public class RetentionTestCase {
             StartingPointPolicy startingPointPolicy, List<String> docTypes, String startingPointEventId,
             String startingPointExpression, String matadataXPath, long years, long months, long days,
             long durationMillis, List<String> beginActions, List<String> endActions) {
-        DocumentModel doc = session.createDocumentModel("/default-domain/RetentionRules", "testRule", "RetentionRule");
+        DocumentModel doc = session.createDocumentModel("/RetentionRules", "testRule", "RetentionRule");
         RetentionRule rule = doc.getAdapter(RetentionRule.class);
         rule.setDurationYears(years);
         rule.setDurationMonths(months);

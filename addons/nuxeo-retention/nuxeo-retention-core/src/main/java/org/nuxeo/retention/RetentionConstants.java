@@ -67,6 +67,8 @@ public class RetentionConstants {
 
     public static final String RECORD_MANAGER_GROUP_NAME = "RecordManager";
 
+    public static final String MANAGE_LEGAL_HOLD_PERMISSION = "ManageLegalHold";
+
     public static final String MANAGE_RECORD_PERMISSION = "ManageRecord";
 
     public static final String DOC_TYPES_PROP = "retention_rule:docTypes";

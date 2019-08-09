@@ -44,7 +44,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 public class TestRetentionSecurity extends RetentionTestCase {
 
     @Test
-    public void shouldNotBeAuthorizedToAttachRule() throws LoginException {
+    public void shouldBeAuthorizedToManageLegalHold() throws LoginException {
         try (CloseableCoreSession userSession = CoreInstance.openCoreSession(session.getRepositoryName(), "user")) {
             service.attachRule(file, createManualImmediateRuleMillis(100L), userSession);
             fail("Sould not be abe to attach rule");
@@ -58,6 +58,21 @@ public class TestRetentionSecurity extends RetentionTestCase {
     }
 
     @Test
+    public void shouldNotBeAuthorizedToAttachRule() throws LoginException {
+        try (CloseableCoreSession userSession = CoreInstance.openCoreSession(session.getRepositoryName(), "user")) {
+            service.attachRule(file, createManualImmediateRuleMillis(100L), userSession);
+            fail("Sould not be abe to attach rule");
+        } catch (NuxeoException e) {
+            // Expected
+            assertEquals(javax.servlet.http.HttpServletResponse.SC_FORBIDDEN, e.getStatusCode());
+            assertFalse(session.isRecord(file.getRef()));
+            assertFalse(session.isUnderRetentionOrLegalHold(file.getRef()));
+            assertFalse(session.getDocument(file.getRef()).hasFacet(RetentionConstants.RECORD_FACET));
+        }
+    }
+
+
+    @Test
     public void shouldBeAuthorizedToAttachRule() throws LoginException {
         ACP acp = new ACPImpl();
         ACE allowAttachRule = new ACE("user", RetentionConstants.MANAGE_RECORD_PERMISSION, true);
@@ -69,6 +84,21 @@ public class TestRetentionSecurity extends RetentionTestCase {
         try (CloseableCoreSession userSession = CoreInstance.openCoreSession(session.getRepositoryName(), "user")) {
             file = service.attachRule(file, createManualImmediateRuleMillis(5000L), userSession);
             assertTrue(userSession.isUnderRetentionOrLegalHold(file.getRef()));
+        }
+    }
+
+    @Test
+    public void shouldBeAuthorizedToSetLegalHold() throws LoginException {
+        ACP acp = new ACPImpl();
+        ACE allowLegalHold = new ACE("user", RetentionConstants.MANAGE_LEGAL_HOLD_PERMISSION, true);
+        ACL acl = new ACLImpl();
+        acl.setACEs(new ACE[] { allowLegalHold });
+        acp.addACL(acl);
+        file.setACP(acp, true);
+        file = session.saveDocument(file);
+        try (CloseableCoreSession userSession = CoreInstance.openCoreSession(session.getRepositoryName(), "user")) {
+            userSession.makeRecord(file.getRef());
+            userSession.setLegalHold(file.getRef(), true);
         }
 
     }
