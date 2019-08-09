@@ -127,17 +127,11 @@ public abstract class AbstractCommentManager implements CommentManager {
         return userManager.getPrincipal(contributors[0]);
     }
 
-    protected void setFolderPermissions(CoreSession session, DocumentModel documentModel) {
-        ACP acp = new ACPImpl();
-        ACE grantAddChildren = new ACE("members", SecurityConstants.ADD_CHILDREN, true);
-        ACE grantRemoveChildren = new ACE("members", SecurityConstants.REMOVE_CHILDREN, true);
-        ACE grantRemove = new ACE("members", SecurityConstants.REMOVE, true);
-        ACL acl = new ACLImpl();
-        acl.setACEs(new ACE[] { grantAddChildren, grantRemoveChildren, grantRemove });
-        acp.addACL(acl);
-        session.setACP(documentModel.getRef(), acp, true);
-    }
 
+    /**
+     * @deprecated since 10.10-HF12. Not used anymore
+     */
+    @Deprecated
     protected void setCommentPermissions(CoreSession session, DocumentModel documentModel) {
         ACP acp = new ACPImpl();
         ACE grantRead = new ACE(SecurityConstants.EVERYONE, SecurityConstants.READ, true);
@@ -146,6 +140,12 @@ public abstract class AbstractCommentManager implements CommentManager {
         acl.setACEs(new ACE[] { grantRead, grantRemove });
         acp.addACL(acl);
         session.setACP(documentModel.getRef(), acp, true);
+    }
+
+    protected void setFolderPermissions(CoreSession session, DocumentModel dm) {
+        ACP acp = dm.getACP();
+        acp.blockInheritance(ACL.LOCAL_ACL, SecurityConstants.SYSTEM_USERNAME);
+        dm.setACP(acp, true);
     }
 
     protected Collection<String> computeAncestorIds(CoreSession session, String parentId) {
